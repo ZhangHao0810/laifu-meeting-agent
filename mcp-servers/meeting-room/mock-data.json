@@ -1,0 +1,185 @@
+{
+  "createMeeting": {
+    "success": {
+      "data": {
+        "meetingId": "5ac2e3971834a1bc583d9bb8"
+      },
+      "error": null,
+      "errorCode": 0,
+      "success": true
+    },
+    "error": {
+      "data": null,
+      "error": "创建会议失败:时间冲突",
+      "errorCode": 1001,
+      "success": false
+    }
+  },
+  "modifyMeeting": {
+    "success": {
+      "success": true,
+      "errorCode": 0,
+      "error": null,
+      "data": null
+    },
+    "error": {
+      "success": false,
+      "errorCode": 1002,
+      "error": "修改会议失败:会议不存在",
+      "data": null
+    }
+  },
+  "getMeetingDetail": {
+    "success": {
+      "success": true,
+      "errorCode": 0,
+      "error": null,
+      "data": {
+        "id": "5b33275f14cada62e4e44840",
+        "openid": "5a67e08d00b0e8dfe4aab4fa",
+        "personName": "张三",
+        "title": "产品评审会议",
+        "content": "讨论Q1季度产品规划和功能优先级",
+        "meetingPlace": "云8会议室",
+        "startDate": 1738569600000,
+        "endDate": 1738576800000,
+        "roomId": "5c121cfd7453ed63750a9767",
+        "roomOrderId": "order_20260203_001",
+        "noticeTimes": [15, 60],
+        "actors": [
+          "5a67e1e1e4b02f1de22a70a3",
+          "5b652863e4b0689c4f38b1d3",
+          "5c32b90b84aef86b358bc9cc"
+        ],
+        "type": "sign",
+        "meetingStatus": 0,
+        "readStatus": 1,
+        "acceptStatus": 2,
+        "createDate": 1738483200000,
+        "doneTime": 0,
+        "cancelTime": 0,
+        "record": false
+      }
+    },
+    "notFound": {
+      "success": false,
+      "errorCode": 1003,
+      "error": "会议不存在",
+      "data": null
+    }
+  },
+  "cancelMeeting": {
+    "success": {
+      "success": true,
+      "errorCode": 0,
+      "error": null,
+      "data": null
+    },
+    "notCreator": {
+      "success": false,
+      "errorCode": 1004,
+      "error": "只有会议发起人才能取消会议",
+      "data": null
+    },
+    "notFound": {
+      "success": false,
+      "errorCode": 1003,
+      "error": "会议不存在",
+      "data": null
+    }
+  },
+  "sampleMeetings": [
+    {
+      "id": "5b33275f14cada62e4e44840",
+      "openid": "5a67e08d00b0e8dfe4aab4fa",
+      "personName": "张三",
+      "title": "产品评审会议",
+      "content": "讨论Q1季度产品规划和功能优先级",
+      "meetingPlace": "云8会议室",
+      "startDate": 1738569600000,
+      "endDate": 1738576800000,
+      "roomId": "5c121cfd7453ed63750a9767",
+      "type": "sign",
+      "meetingStatus": 0
+    },
+    {
+      "id": "5b86ed2fbeb7cc35af769eb8",
+      "openid": "5a67e1e1e4b02f1de22a70a3",
+      "personName": "李四",
+      "title": "技术方案评审",
+      "content": "评审新架构设计方案",
+      "meetingPlace": "冥王星1号会议室",
+      "startDate": 1738656000000,
+      "endDate": 1738663200000,
+      "roomId": "5c121cfd7453ed63750a9768",
+      "type": "voice",
+      "meetingStatus": 0
+    },
+    {
+      "id": "5fdc699daf0cab00011be447",
+      "openid": "5fd738d3e4b002b997549efd",
+      "personName": "王五",
+      "title": "周例会",
+      "content": "团队周报和工作计划同步",
+      "meetingPlace": "线上会议",
+      "startDate": 1738742400000,
+      "endDate": 1738746000000,
+      "roomId": null,
+      "type": null,
+      "meetingStatus": 1
+    }
+  ],
+  "sampleUsers": [
+    {
+      "openId": "5a67e08d00b0e8dfe4aab4fa",
+      "userName": "张三",
+      "headerUrl": "http://example.com/avatar/zhangsan.jpg"
+    },
+    {
+      "openId": "5a67e1e1e4b02f1de22a70a3",
+      "userName": "李四",
+      "headerUrl": "http://example.com/avatar/lisi.jpg"
+    },
+    {
+      "openId": "5b652863e4b0689c4f38b1d3",
+      "userName": "王五",
+      "headerUrl": "http://example.com/avatar/wangwu.jpg"
+    },
+    {
+      "openId": "5c32b90b84aef86b358bc9cc",
+      "userName": "赵六",
+      "headerUrl": "http://example.com/avatar/zhaoliu.jpg"
+    },
+    {
+      "openId": "5fd738d3e4b002b997549efd",
+      "userName": "刘琳",
+      "headerUrl": "http://example.com/avatar/liulin.jpg"
+    }
+  ],
+  "sampleRooms": [
+    {
+      "roomId": "5c121cfd7453ed63750a9767",
+      "roomName": "云8会议室",
+      "roomDetail": "可容纳10人,配备投影仪和白板",
+      "limitCount": 10,
+      "approve": true,
+      "note": "需要提前预约"
+    },
+    {
+      "roomId": "5c121cfd7453ed63750a9768",
+      "roomName": "冥王星1号",
+      "roomDetail": "大型会议室,可容纳30人",
+      "limitCount": 30,
+      "approve": true,
+      "note": "配备视频会议系统"
+    },
+    {
+      "roomId": "5c121cfd7453ed63750a9769",
+      "roomName": "火星2号",
+      "roomDetail": "小型讨论室,可容纳5人",
+      "limitCount": 5,
+      "approve": false,
+      "note": "无需审批,随时可用"
+    }
+  ]
+}

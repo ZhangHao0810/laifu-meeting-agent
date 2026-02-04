@@ -1,6 +1,10 @@
 # Compiled class file
 *.class
 
+.idea
+
+mcp-servers/meeting-room/node_modules
+
 # Log file
 *.log
 
