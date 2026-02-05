@@ -1,10 +1,12 @@
 # Meeting Room MCP Server
 
-一个基于Model Context Protocol (MCP)的会议室服务MCP Server,封装了会议室服务的前四个核心接口。
+一个基于Model Context Protocol (MCP)的会议室服务MCP Server,封装了会议室服务的全部9个核心接口。
 
 ## 功能特性
 
-本MCP Server提供以下四个工具(Tools):
+本MCP Server提供以下九个工具(Tools):
+
+### 基础会议管理 (1-4)
 
 ### 1. create_meeting - 新增单个会议
 创建一个新的会议,支持设置会议标题、内容、时间、地点、参与人等信息。
@@ -47,6 +49,53 @@
 **参数:**
 - `id` (必填): 会议id
 - `openid` (必填): 会议发起人的oid
+- `accessToken` (必填): 访问令牌
+
+### 会议查询功能 (5-7)
+
+### 5. query_meetings_by_day - 按天查询工作圈下会议
+查询指定日期的所有会议。
+
+**参数:**
+- `day` (必填): 待查询的日期时间戳(当天任意时间戳都可以)
+- `accessToken` (必填): 访问令牌
+
+### 6. query_meetings_by_range - 按时间范围查询工作圈下会议
+查询指定时间范围内的所有会议。
+
+**参数:**
+- `start` (必填): 开始时间戳
+- `end` (必填): 结束时间戳
+- `accessToken` (必填): 访问令牌
+
+### 7. query_user_meetings - 单个用户会议查询
+查询指定用户的会议列表,支持分页和状态筛选。
+
+**参数:**
+- `pageNum` (必填): 第几页,从1开始
+- `pageSize` (必填): 每页多少条
+- `openId` (必填): 人员oid
+- `status` (可选): 状态(0未开始,1已结束,null所有)
+- `accessToken` (必填): 访问令牌
+
+### 会议室与参与人查询 (8-9)
+
+### 8. query_free_rooms - 查询该工作圈空闲的会议室
+根据时间段查询可用的会议室列表。
+
+**参数:**
+- `openId` (必填): 预约人员信息openId
+- `startTime` (必填): 开始时间戳
+- `endTime` (必填): 结束时间戳
+- `pageIndex` (可选): 页码,默认1
+- `pageSize` (可选): 每页条数,默认50
+- `accessToken` (必填): 访问令牌
+
+### 9. get_meeting_actors - 查询某个会议的与会人
+获取指定会议的所有参与人员列表。
+
+**参数:**
+- `orderId` (必填): 会议订单id
 - `accessToken` (必填): 访问令牌
 
 ## Mock数据说明

@@ -74,6 +74,39 @@ const CancelMeetingSchema = z.object({
   accessToken: z.string().describe('访问令牌'),
 });
 
+const QueryByDaySchema = z.object({
+  day: z.number().describe('待查询的日期时间戳(当天任意时间戳都可以)'),
+  accessToken: z.string().describe('访问令牌'),
+});
+
+const QueryByRangeSchema = z.object({
+  start: z.number().describe('开始时间戳'),
+  end: z.number().describe('结束时间戳'),
+  accessToken: z.string().describe('访问令牌'),
+});
+
+const QueryByUserSchema = z.object({
+  pageNum: z.number().describe('第几页,从1开始'),
+  pageSize: z.number().describe('每页多少条'),
+  openId: z.string().describe('人员oid'),
+  status: z.number().optional().describe('状态(0未开始,1已结束,null所有)'),
+  accessToken: z.string().describe('访问令牌'),
+});
+
+const QueryFreeRoomsSchema = z.object({
+  openId: z.string().describe('预约人员信息openId'),
+  startTime: z.number().describe('开始时间戳'),
+  endTime: z.number().describe('结束时间戳'),
+  pageIndex: z.number().optional().describe('页码,默认1'),
+  pageSize: z.number().optional().describe('每页条数,默认50'),
+  accessToken: z.string().describe('访问令牌'),
+});
+
+const GetMeetingActorsSchema = z.object({
+  orderId: z.string().describe('会议订单id'),
+  accessToken: z.string().describe('访问令牌'),
+});
+
 // Helper function to generate random meeting ID
 function generateMeetingId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -239,6 +272,128 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['id', 'openid', 'accessToken'],
         },
       },
+      {
+        name: 'query_meetings_by_day',
+        description: '按天查询工作圈下会议。查询指定日期的所有会议。',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            day: {
+              type: 'number',
+              description: '待查询的日期时间戳(当天任意时间戳都可以)',
+            },
+            accessToken: {
+              type: 'string',
+              description: '访问令牌',
+            },
+          },
+          required: ['day', 'accessToken'],
+        },
+      },
+      {
+        name: 'query_meetings_by_range',
+        description: '按时间范围查询工作圈下会议。查询指定时间范围内的所有会议。',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            start: {
+              type: 'number',
+              description: '开始时间戳',
+            },
+            end: {
+              type: 'number',
+              description: '结束时间戳',
+            },
+            accessToken: {
+              type: 'string',
+              description: '访问令牌',
+            },
+          },
+          required: ['start', 'end', 'accessToken'],
+        },
+      },
+      {
+        name: 'query_user_meetings',
+        description: '单个用户会议查询。查询指定用户的会议列表,支持分页和状态筛选。',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pageNum: {
+              type: 'number',
+              description: '第几页,从1开始',
+            },
+            pageSize: {
+              type: 'number',
+              description: '每页多少条',
+            },
+            openId: {
+              type: 'string',
+              description: '人员oid',
+            },
+            status: {
+              type: 'number',
+              description: '状态(0未开始,1已结束,null所有)',
+            },
+            accessToken: {
+              type: 'string',
+              description: '访问令牌',
+            },
+          },
+          required: ['pageNum', 'pageSize', 'openId', 'accessToken'],
+        },
+      },
+      {
+        name: 'query_free_rooms',
+        description: '查询该工作圈空闲的会议室。根据时间段查询可用的会议室列表。',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            openId: {
+              type: 'string',
+              description: '预约人员信息openId',
+            },
+            startTime: {
+              type: 'number',
+              description: '开始时间戳',
+            },
+            endTime: {
+              type: 'number',
+              description: '结束时间戳',
+            },
+            pageIndex: {
+              type: 'number',
+              description: '页码,默认1',
+            },
+            pageSize: {
+              type: 'number',
+              description: '每页条数,默认50',
+            },
+            accessToken: {
+              type: 'string',
+              description: '访问令牌',
+            },
+          },
+          required: ['openId', 'startTime', 'endTime', 'accessToken'],
+        },
+      },
+      {
+        name: 'get_meeting_actors',
+        description: '查询某个会议的与会人。获取指定会议的所有参与人员列表。',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            orderId: {
+              type: 'string',
+              description: '会议订单id',
+            },
+            accessToken: {
+              type: 'string',
+              description: '访问令牌',
+            },
+          },
+          required: ['orderId', 'accessToken'],
+        },
+      },
     ],
   };
 });
@@ -251,10 +406,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     switch (name) {
       case 'create_meeting': {
         const params = CreateMeetingSchema.parse(args);
-        
+
         // Generate a new meeting ID
         const newMeetingId = generateMeetingId();
-        
+
         // Return mock success response with the generated ID
         const response = {
           ...mockData.createMeeting.success,
@@ -275,10 +430,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'modify_meeting': {
         const params = ModifyMeetingSchema.parse(args);
-        
+
         // Check if meeting exists in sample data
         const meetingExists = mockData.sampleMeetings.some(m => m.id === params.id);
-        
+
         if (!meetingExists && params.id !== '5b33275f14cada62e4e44840') {
           // Return error if meeting not found
           return {
@@ -304,10 +459,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'get_meeting_detail': {
         const params = GetMeetingDetailSchema.parse(args);
-        
+
         // Check if meeting exists in sample data
         const meeting = mockData.sampleMeetings.find(m => m.id === params.id);
-        
+
         if (!meeting && params.id !== '5b33275f14cada62e4e44840') {
           // Return error if meeting not found
           return {
@@ -333,10 +488,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'cancel_meeting': {
         const params = CancelMeetingSchema.parse(args);
-        
+
         // Check if meeting exists in sample data
         const meeting = mockData.sampleMeetings.find(m => m.id === params.id);
-        
+
         if (!meeting && params.id !== '5b33275f14cada62e4e44840') {
           // Return error if meeting not found
           return {
@@ -368,6 +523,139 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: 'text',
               text: JSON.stringify(mockData.cancelMeeting.success, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'query_meetings_by_day': {
+        const params = QueryByDaySchema.parse(args);
+
+        // Filter meetings by day
+        const dayStart = new Date(params.day);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(params.day);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const meetings = mockData.sampleMeetings.filter(m => {
+          return m.startDate >= dayStart.getTime() && m.startDate <= dayEnd.getTime();
+        });
+
+        // Return mock response with filtered meetings
+        const response = {
+          ...mockData.queryByDay.success,
+          data: meetings.length > 0 ? mockData.queryByDay.success.data : []
+        };
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(response, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'query_meetings_by_range': {
+        const params = QueryByRangeSchema.parse(args);
+
+        // Filter meetings by time range
+        const meetings = mockData.sampleMeetings.filter(m => {
+          return m.startDate >= params.start && m.endDate <= params.end;
+        });
+
+        // Return mock response with filtered meetings
+        const response = {
+          ...mockData.queryByRange.success,
+          data: meetings.length > 0 ? mockData.queryByRange.success.data : []
+        };
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(response, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'query_user_meetings': {
+        const params = QueryByUserSchema.parse(args);
+
+        // Filter meetings by user
+        let userMeetings = mockData.sampleMeetings.filter(m => m.openid === params.openId);
+
+        // Filter by status if provided
+        if (params.status !== undefined) {
+          userMeetings = userMeetings.filter(m => m.meetingStatus === params.status);
+        }
+
+        // Apply pagination
+        const start = (params.pageNum - 1) * params.pageSize;
+        const end = start + params.pageSize;
+        const paginatedMeetings = userMeetings.slice(start, end);
+
+        // Return mock response
+        const response = {
+          ...mockData.queryByUser.success,
+          data: paginatedMeetings.length > 0 ? mockData.queryByUser.success.data : []
+        };
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(response, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'query_free_rooms': {
+        const params = QueryFreeRoomsSchema.parse(args);
+
+        // Return mock free rooms
+        // In a real implementation, this would check room availability
+        const response = mockData.queryFreeRooms.success;
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(response, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'get_meeting_actors': {
+        const params = GetMeetingActorsSchema.parse(args);
+
+        // Check if meeting/order exists
+        const meeting = mockData.sampleMeetings.find(m =>
+          m.id === params.orderId || m.roomOrderId === params.orderId
+        );
+
+        if (!meeting) {
+          // Return error if meeting not found
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(mockData.getMeetingActors.notFound, null, 2),
+              },
+            ],
+          };
+        }
+
+        // Return mock actors
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(mockData.getMeetingActors.success, null, 2),
             },
           ],
         };

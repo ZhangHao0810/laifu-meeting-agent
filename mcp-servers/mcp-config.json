@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "contacts-service": {
+            "command": "node",
+            "args": [
+                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\contacts\\dist\\index.js"
+            ]
+        },
+        "meeting-room-service": {
+            "command": "node",
+            "args": [
+                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\meeting-room\\index.js"
+            ]
+        }
+    }
+}
