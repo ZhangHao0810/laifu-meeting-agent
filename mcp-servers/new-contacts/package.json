@@ -1,0 +1,22 @@
+{
+    "name": "new-contacts",
+    "version": "1.0.0",
+    "description": "MCP server for employee and department information with mock data",
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "generate-data": "node src/generate-mock-data.js"
+    },
+    "keywords": [
+        "mcp",
+        "contacts",
+        "employee",
+        "department"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.4"
+    }
+}
