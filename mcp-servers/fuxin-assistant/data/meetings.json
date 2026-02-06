@@ -1,0 +1,49 @@
+[
+    {
+        "id": "meeting_001",
+        "eid": "25185534",
+        "title": "测试会议",
+        "content": "新增会议测试",
+        "roomId": "room_bj_001",
+        "startDate": 1738742400000,
+        "endDate": 1738749600000,
+        "status": 0,
+        "createDate": 1738732000000,
+        "openId": "64db4447e4b00d5d7f029ee2",
+        "personName": "张浩",
+        "participants": [
+            {
+                "personName": "孙琦",
+                "openId": "64db4210e4b00d5d7f029015",
+                "joinStatus": 0,
+                "readStatus": 0
+            }
+        ],
+        "organizers": [
+            {
+                "personName": "张浩",
+                "openId": "64db4447e4b00d5d7f029ee2"
+            }
+        ]
+    },
+    {
+        "id": "meeting_002",
+        "eid": "25185534",
+        "title": "周会",
+        "content": "每周例会",
+        "roomId": "room_sh_001",
+        "startDate": 1738828800000,
+        "endDate": 1738836000000,
+        "status": 0,
+        "createDate": 1738818000000,
+        "openId": "64db4378e4b05e2064aa2346",
+        "personName": "徐海峰",
+        "participants": [],
+        "organizers": [
+            {
+                "personName": "徐海峰",
+                "openId": "64db4378e4b05e2064aa2346"
+            }
+        ]
+    }
+]

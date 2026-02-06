@@ -1,0 +1,92 @@
+/**
+ * 查询今天下午2-6点深圳市的空闲会议室
+ */
+
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+
+async function queryShenzhenAfternoon() {
+    console.log('=== 查询深圳市空闲会议室（今天下午2-6点） ===\n');
+
+    const transport = new StdioClientTransport({
+        command: 'node',
+        args: ['src/index.js']
+    });
+
+    const client = new Client({
+        name: 'query-client',
+        version: '1.0.0'
+    }, {
+        capabilities: {}
+    });
+
+    await client.connect(transport);
+    console.log('✅ 已连接到 FuXin Assistant MCP Server\n');
+
+    try {
+        // 今天下午2点到6点
+        const today = new Date();
+        const startTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0, 0);
+        const endTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 18, 0, 0);
+
+        console.log(`📅 查询时间段:`);
+        console.log(`   开始: ${startTime.toLocaleString('zh-CN')}`);
+        console.log(`   结束: ${endTime.toLocaleString('zh-CN')}\n`);
+
+        const result = await client.callTool({
+            name: 'getFreeMeetingRooms',
+            arguments: {
+                openId: 'demo_user_001',
+                startTime: startTime.getTime(),
+                endTime: endTime.getTime(),
+                pageIndex: 1,
+                pageSize: 50
+            }
+        });
+
+        const data = JSON.parse(result.content[0].text);
+
+        if (data.successFlag && data.content) {
+            // 筛选深圳市的会议室
+            const shenzhenRooms = data.content.filter(room => room.city === '深圳市');
+
+            console.log(`🏢 深圳市空闲会议室 (共 ${shenzhenRooms.length} 个):\n`);
+
+            if (shenzhenRooms.length > 0) {
+                shenzhenRooms.forEach((room, index) => {
+                    const approveStatus = room.approve ? '🔒 需审批' : '✅ 直接预订';
+                    const videoStatus = room.roomName.includes('视频') ? '📹 可开视频会议' : '';
+
+                    console.log(`${index + 1}. ${room.roomName}`);
+                    console.log(`   📍 位置: ${room.roomDetail}`);
+                    console.log(`   👥 容量: ${room.limitCount}人`);
+                    console.log(`   ${approveStatus} ${videoStatus}`);
+                    console.log(`   🆔 ID: ${room.roomId}`);
+
+                    // 特别标注已预订的会议室
+                    if (room.roomId === 'room_sz_002') {
+                        console.log(`   ⚠️  注意: 此会议室已被预订（15:00-17:00，AI部门技术讨论会）`);
+                    }
+                    console.log('');
+                });
+
+                console.log('💡 提示:');
+                console.log('   - 当前Mock实现返回所有会议室为"空闲"');
+                console.log('   - 实际使用时会根据已有预订过滤冲突的会议室');
+                console.log('   - 深圳创新会议室(room_sz_002)在15:00-17:00已有预订\n');
+            } else {
+                console.log('   暂无空闲会议室\n');
+            }
+
+        } else {
+            console.log('❌ 查询失败:', data.message);
+        }
+
+    } catch (error) {
+        console.error('❌ 查询出错:', error.message);
+    } finally {
+        await client.close();
+    }
+}
+
+queryShenzhenAfternoon().catch(console.error);

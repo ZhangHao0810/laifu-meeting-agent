@@ -1,0 +1,182 @@
+[
+    {
+        "roomId": "room_sz_001",
+        "roomName": "深圳商点会议室(可开视频会议)",
+        "roomDetail": "深圳小蛮腰大厦 3-1室",
+        "tagId": "tag_sz_01",
+        "limitCount": 16,
+        "approve": true,
+        "city": "深圳市"
+    },
+    {
+        "roomId": "room_sz_002",
+        "roomName": "深圳创新会议室",
+        "roomDetail": "深圳科技园 A座 5楼",
+        "tagId": "tag_sz_02",
+        "limitCount": 10,
+        "approve": false,
+        "city": "深圳市"
+    },
+    {
+        "roomId": "room_bj_001",
+        "roomName": "北京临时会议室(可开视频会议)",
+        "roomDetail": "北京公司内",
+        "tagId": "tag_bj_01",
+        "limitCount": 20,
+        "approve": true,
+        "city": "北京市"
+    },
+    {
+        "roomId": "room_bj_002",
+        "roomName": "北京思惠会议室",
+        "roomDetail": "北京朝阳区 思惠大厦 12层",
+        "tagId": "tag_bj_02",
+        "limitCount": 12,
+        "approve": false,
+        "city": "北京市"
+    },
+    {
+        "roomId": "room_sh_001",
+        "roomName": "上海陆家嘴会议室(可开视频会议)",
+        "roomDetail": "上海陆家嘴金融中心 18楼",
+        "tagId": "tag_sh_01",
+        "limitCount": 16,
+        "approve": true,
+        "city": "上海市"
+    },
+    {
+        "roomId": "room_sh_002",
+        "roomName": "上海张江会议室",
+        "roomDetail": "上海张江高科技园区 B座 3楼",
+        "tagId": "tag_sh_02",
+        "limitCount": 8,
+        "approve": false,
+        "city": "上海市"
+    },
+    {
+        "roomId": "room_gz_001",
+        "roomName": "广州商点会议室(可开视频会议)",
+        "roomDetail": "广州小蛮腰大厦 3-1室",
+        "tagId": "tag_gz_01",
+        "limitCount": 16,
+        "approve": true,
+        "city": "广州市"
+    },
+    {
+        "roomId": "room_gz_002",
+        "roomName": "广州天河会议室",
+        "roomDetail": "广州天河区 科技大厦 8楼",
+        "tagId": "tag_gz_02",
+        "limitCount": 10,
+        "approve": false,
+        "city": "广州市"
+    },
+    {
+        "roomId": "room_nj_001",
+        "roomName": "南京新街口会议室",
+        "roomDetail": "南京新街口 商业中心 15楼",
+        "tagId": "tag_nj_01",
+        "limitCount": 12,
+        "approve": true,
+        "city": "南京市"
+    },
+    {
+        "roomId": "room_nj_002",
+        "roomName": "南京江北会议室(可开视频会议)",
+        "roomDetail": "南京江北新区 科创园 6楼",
+        "tagId": "tag_nj_02",
+        "limitCount": 14,
+        "approve": false,
+        "city": "南京市"
+    },
+    {
+        "roomId": "room_jn_001",
+        "roomName": "济南舜泰广场会议室",
+        "roomDetail": "济南舜泰广场 2001室",
+        "tagId": "tag_jn_01",
+        "limitCount": 10,
+        "approve": true,
+        "city": "济南市"
+    },
+    {
+        "roomId": "room_jn_002",
+        "roomName": "济南42-1会议室(可开视频会议)",
+        "roomDetail": "济南公司42层",
+        "tagId": "tag_jn_02",
+        "limitCount": 18,
+        "approve": false,
+        "city": "济南市"
+    },
+    {
+        "roomId": "room_hz_001",
+        "roomName": "杭州西湖会议室",
+        "roomDetail": "杭州西湖区 科技大厦 10楼",
+        "tagId": "tag_hz_01",
+        "limitCount": 12,
+        "approve": true,
+        "city": "杭州市"
+    },
+    {
+        "roomId": "room_cd_001",
+        "roomName": "成都天府会议室(可开视频会议)",
+        "roomDetail": "成都天府新区 软件园 5楼",
+        "tagId": "tag_cd_01",
+        "limitCount": 14,
+        "approve": false,
+        "city": "成都市"
+    },
+    {
+        "roomId": "room_cq_001",
+        "roomName": "重庆解放碑会议室",
+        "roomDetail": "重庆解放碑 商务大厦 20楼",
+        "tagId": "tag_cq_01",
+        "limitCount": 16,
+        "approve": true,
+        "city": "重庆市"
+    },
+    {
+        "roomId": "room_qd_001",
+        "roomName": "青岛市南会议室(可开视频会议)",
+        "roomDetail": "青岛市南区 科技园 7楼",
+        "tagId": "tag_qd_01",
+        "limitCount": 10,
+        "approve": false,
+        "city": "青岛市"
+    },
+    {
+        "roomId": "room_wh_001",
+        "roomName": "武汉光谷会议室",
+        "roomDetail": "武汉光谷 软件园 12楼",
+        "tagId": "tag_wh_01",
+        "limitCount": 12,
+        "approve": true,
+        "city": "武汉市"
+    },
+    {
+        "roomId": "room_xa_001",
+        "roomName": "西安高新会议室(可开视频会议)",
+        "roomDetail": "西安高新区 科技大厦 9楼",
+        "tagId": "tag_xa_01",
+        "limitCount": 14,
+        "approve": false,
+        "city": "西安市"
+    },
+    {
+        "roomId": "room_sy_001",
+        "roomName": "沈阳浑南会议室",
+        "roomDetail": "沈阳浑南区 创新中心 11楼",
+        "tagId": "tag_sy_01",
+        "limitCount": 10,
+        "approve": true,
+        "city": "沈阳市"
+    },
+    {
+        "roomId": "room_dl_001",
+        "roomName": "大连星海会议室(可开视频会议)",
+        "roomDetail": "大连星海广场 商务中心 8楼",
+        "tagId": "tag_dl_01",
+        "limitCount": 16,
+        "approve": false,
+        "city": "大连市"
+    }
+]
