@@ -26,3 +26,5 @@ mcp-servers/meeting-room/node_modules
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+/mcp-servers/fuxin-assistant/node_modules/
