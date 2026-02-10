@@ -19,8 +19,8 @@ let meetingRooms = JSON.parse(fs.readFileSync(join(__dirname, '../data/meeting-r
 let roomBookings = JSON.parse(fs.readFileSync(join(__dirname, '../data/room-bookings.json'), 'utf-8'));
 let meetings = JSON.parse(fs.readFileSync(join(__dirname, '../data/meetings.json'), 'utf-8'));
 
-console.log(`Loaded ${meetingRooms.length} meeting rooms, ${roomBookings.length} bookings, ${meetings.length} meetings`);
-console.log('[Demo Mode] In-memory state management enabled - changes will persist until server restart');
+console.error(`Loaded ${meetingRooms.length} meeting rooms, ${roomBookings.length} bookings, ${meetings.length} meetings`);
+console.error('[Demo Mode] In-memory state management enabled - changes will persist until server restart');
 
 // Create server instance
 const server = new Server(
@@ -506,7 +506,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             // Add to in-memory array
             meetings.push(newMeeting);
-            console.log(`[Demo] Created meeting: ${newMeetingId} - "${title}"`);
+            console.error(`[Demo] Created meeting: ${newMeetingId} - "${title}"`);
 
             return {
                 content: [{
@@ -586,7 +586,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             if (meeting) {
                 meeting.status = 2; // 2 = cancelled
                 meeting.updateTime = Date.now();
-                console.log(`[Demo] Cancelled meeting: ${id}`);
+                console.error(`[Demo] Cancelled meeting: ${id}`);
             }
 
             return {
@@ -677,7 +677,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     );
                 }
 
-                console.log(`[Demo] Updated meeting: ${id}`);
+                console.error(`[Demo] Updated meeting: ${id}`);
             }
 
             return {

@@ -28,3 +28,4 @@ hs_err_pid*
 replay_pid*
 
 /mcp-servers/fuxin-assistant/node_modules/
+/mcp-servers/time-server/node_modules/

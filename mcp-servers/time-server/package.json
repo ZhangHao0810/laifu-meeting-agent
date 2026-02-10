@@ -1,0 +1,19 @@
+{
+    "name": "time-server",
+    "version": "1.0.0",
+    "description": "MCP server for querying current time",
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js"
+    },
+    "keywords": [
+        "mcp",
+        "time"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.0.4"
+    }
+}

@@ -11,6 +11,12 @@
             "args": [
                 "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\fuxin-assistant\\src\\index.js"
             ]
+        },
+        "time-server": {
+            "command": "node",
+            "args": [
+                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\time-server\\src\\index.js"
+            ]
         }
     }
 }
