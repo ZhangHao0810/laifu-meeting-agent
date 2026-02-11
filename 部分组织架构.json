@@ -1,0 +1,86 @@
+{
+    "name": "公司",
+    "children": [
+        {
+            "name": "某科技有限公司",
+            "children": [
+                {
+                    "name": "公司高管",
+                    "children": []
+                },
+                {
+                    "name": "业务前台",
+                    "children": []
+                },
+                {
+                    "name": "业务中台",
+                    "children": [
+                        {
+                            "name": "笔记本产品中心",
+                            "children": [
+                                {
+                                    "name": "安全产品中心",
+                                    "children": []
+                                },
+                                {
+                                    "name": "数据产品中心",
+                                    "children": []
+                                },
+                                {
+                                    "name": "端点产品中心",
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "name": "台式机产品研发中心",
+                            "children": [
+                                {
+                                    "name": "开发部1",
+                                    "children": []
+                                },
+                                {
+                                    "name": "开发部2",
+                                    "children": []
+                                },
+                                {
+                                    "name": "开发部3",
+                                    "children": []
+                                },
+                                {
+                                    "name": "测试部",
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "name": "网络产品研发中心",
+                            "children": []
+                        },
+                        {
+                            "name": "安全产品研发中心",
+                            "children": []
+                        },
+                        {
+                            "name": "AI产品研发中心",
+                            "children": []
+                        }
+                    ]
+                },
+                {
+                    "name": "业务后台",
+                    "children": []
+                },
+                {
+                    "name": "职能平台",
+                    "children": [
+                        {
+                            "name": "职能平台中心",
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

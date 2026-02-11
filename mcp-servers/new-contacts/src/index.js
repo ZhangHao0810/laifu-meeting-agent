@@ -65,7 +65,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: [
             {
-                name: 'getCloudUserInfo',
+                name: 'contacts_getCloudUserInfo',
                 description: '根据人员 code（工号/员工编号）查询云端用户详细信息',
                 inputSchema: {
                     type: 'object',
@@ -79,7 +79,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getDepartmentInfo',
+                name: 'contacts_getDepartmentInfo',
                 description: '根据部门 ID 或部门名称查询部门详细信息，包括部门基本信息、层级关系、部门内成员列表等',
                 inputSchema: {
                     type: 'object',
@@ -96,7 +96,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getUserByName',
+                name: 'contacts_getUserByName',
                 description: '根据员工姓名查询员工信息（主要用于获取工号、BASE地等）',
                 inputSchema: {
                     type: 'object',
@@ -110,7 +110,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getBatchUserInfo',
+                name: 'contacts_getBatchUserInfo',
                 description: '批量查询多个员工的详细信息',
                 inputSchema: {
                     type: 'object',
@@ -134,7 +134,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'searchUsersByName',
+                name: 'contacts_searchUsersByName',
                 description: '根据姓名关键词模糊搜索员工',
                 inputSchema: {
                     type: 'object',
@@ -152,7 +152,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getDepartmentMembers',
+                name: 'contacts_getDepartmentMembers',
                 description: '查询部门成员信息，支持按 BASE 地过滤、字段选择等，适合 AI Agent 一次性获取精确结果',
                 inputSchema: {
                     type: 'object',
@@ -211,7 +211,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
     try {
-        if (name === 'getCloudUserInfo') {
+        if (name === 'contacts_getCloudUserInfo') {
             const { code } = args;
 
             if (!code) {
@@ -261,7 +261,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     ],
                 };
             }
-        } else if (name === 'getDepartmentInfo') {
+        } else if (name === 'contacts_getDepartmentInfo') {
             const { orgId, orgName } = args;
 
             if (!orgId && !orgName) {
@@ -316,7 +316,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     ],
                 };
             }
-        } else if (name === 'getUserByName') {
+        } else if (name === 'contacts_getUserByName') {
             const { name: userName } = args;
 
             if (!userName) {
@@ -370,7 +370,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     ],
                 };
             }
-        } else if (name === 'getBatchUserInfo') {
+        } else if (name === 'contacts_getBatchUserInfo') {
             const { codes, fields } = args;
 
             if (!codes || !Array.isArray(codes) || codes.length === 0) {
@@ -419,7 +419,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     },
                 ],
             };
-        } else if (name === 'searchUsersByName') {
+        } else if (name === 'contacts_searchUsersByName') {
             const { keyword, limit } = args;
 
             if (!keyword) {
@@ -470,7 +470,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     },
                 ],
             };
-        } else if (name === 'getDepartmentMembers') {
+        } else if (name === 'contacts_getDepartmentMembers') {
             const { orgId, orgName, filters, fields, pagination } = args;
 
             // Validate input

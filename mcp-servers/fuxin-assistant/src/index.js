@@ -41,7 +41,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         tools: [
             // Meeting Room Tools
             {
-                name: 'hasNewMeetingRoomBooking',
+                name: 'fuxin_hasNewMeetingRoomBooking',
                 description: '检查是否有新的会议室预订（用于轮询）',
                 inputSchema: {
                     type: 'object',
@@ -54,7 +54,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getMeetingRoomBookings',
+                name: 'fuxin_getMeetingRoomBookings',
                 description: '获取会议室预订信息（支持增量获取）',
                 inputSchema: {
                     type: 'object',
@@ -71,7 +71,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getFreeMeetingRooms',
+                name: 'fuxin_getFreeMeetingRooms',
                 description: '查询指定时间段的空闲会议室',
                 inputSchema: {
                     type: 'object',
@@ -101,7 +101,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getMeetingRoomAttendees',
+                name: 'fuxin_getMeetingRoomAttendees',
                 description: '查询某个会议的与会人列表',
                 inputSchema: {
                     type: 'object',
@@ -116,7 +116,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             // Schedule Tools
             {
-                name: 'createMeeting',
+                name: 'fuxin_createMeeting',
                 description: '创建新会议',
                 inputSchema: {
                     type: 'object',
@@ -164,7 +164,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getMeetingDetail',
+                name: 'fuxin_getMeetingDetail',
                 description: '查看单个会议详情',
                 inputSchema: {
                     type: 'object',
@@ -178,7 +178,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'cancelMeeting',
+                name: 'fuxin_cancelMeeting',
                 description: '取消会议',
                 inputSchema: {
                     type: 'object',
@@ -196,7 +196,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'queryMeetingsByDay',
+                name: 'fuxin_queryMeetingsByDay',
                 description: '按天查询会议列表',
                 inputSchema: {
                     type: 'object',
@@ -210,7 +210,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'updateMeeting',
+                name: 'fuxin_updateMeeting',
                 description: '修改单个会议',
                 inputSchema: {
                     type: 'object',
@@ -262,7 +262,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'queryMeetingsByRange',
+                name: 'fuxin_queryMeetingsByRange',
                 description: '按时间范围查询会议列表',
                 inputSchema: {
                     type: 'object',
@@ -280,7 +280,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'getRecentMeetings',
+                name: 'fuxin_getRecentMeetings',
                 description: '获取最近时间的会议列表（分页）',
                 inputSchema: {
                     type: 'object',
@@ -309,7 +309,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'queryUserMeetings',
+                name: 'fuxin_queryUserMeetings',
                 description: '查询指定用户的会议列表',
                 inputSchema: {
                     type: 'object',
@@ -344,7 +344,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     try {
         // Meeting Room Tools
-        if (name === 'hasNewMeetingRoomBooking') {
+        if (name === 'fuxin_hasNewMeetingRoomBooking') {
             const { lastTime } = args;
 
             let hasNew = false;
@@ -367,7 +367,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'getMeetingRoomBookings') {
+        else if (name === 'fuxin_getMeetingRoomBookings') {
             const { lastIndex, pageSize = 50 } = args;
 
             let filteredBookings = roomBookings;
@@ -393,7 +393,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'getFreeMeetingRooms') {
+        else if (name === 'fuxin_getFreeMeetingRooms') {
             const { openId, startTime, endTime, pageIndex = 1, pageSize = 50 } = args;
 
             if (!openId || !startTime) {
@@ -426,7 +426,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'getMeetingRoomAttendees') {
+        else if (name === 'fuxin_getMeetingRoomAttendees') {
             const { orderId } = args;
 
             if (!orderId) {
@@ -459,7 +459,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         // Schedule Tools
-        else if (name === 'createMeeting') {
+        else if (name === 'fuxin_createMeeting') {
             const { openId, title, content, roomId, startDate, endDate, noticeTimes, actors } = args;
 
             if (!openId || !title || !roomId || !startDate || !endDate) {
@@ -522,7 +522,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'getMeetingDetail') {
+        else if (name === 'fuxin_getMeetingDetail') {
             const { id } = args;
 
             if (!id) {
@@ -565,7 +565,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'cancelMeeting') {
+        else if (name === 'fuxin_cancelMeeting') {
             const { id, openId } = args;
 
             if (!id || !openId) {
@@ -601,7 +601,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'queryMeetingsByDay') {
+        else if (name === 'fuxin_queryMeetingsByDay') {
             const { day } = args;
 
             if (!day) {
@@ -631,7 +631,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'updateMeeting') {
+        else if (name === 'fuxin_updateMeeting') {
             const { id, openId, title, content, startDate, endDate, roomId, addActors, delActors } = args;
 
             if (!id || !openId) {
@@ -692,7 +692,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'queryMeetingsByRange') {
+        else if (name === 'fuxin_queryMeetingsByRange') {
             const { start, end } = args;
 
             if (!start || !end) {
@@ -726,7 +726,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'getRecentMeetings') {
+        else if (name === 'fuxin_getRecentMeetings') {
             const { lastTime, page, size, roomIds } = args;
 
             if (!page || !size) {
@@ -775,7 +775,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
         }
 
-        else if (name === 'queryUserMeetings') {
+        else if (name === 'fuxin_queryUserMeetings') {
             const { pageNum, pageSize, openId, status } = args;
 
             if (!pageNum || !pageSize || !openId) {
