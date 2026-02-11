@@ -31,6 +31,14 @@ description: 通讯录专家，负责人员身份识别、组织归属查询及�
 
 ## 最佳实践
 
+### 部门名称模糊时的处理策略
+
+当用户描述的部门名称不准确或无法直接找到时（例如"那个搞AI的部门"、"测试那帮人"），**优先使用** `contacts_getAllDepartments` 获取全量部门列表：
+
+1. **第一步**：调用 `contacts_getAllDepartments(fields: ["ORG_NAME", "ORG_PATH_NAME"], tree: true)` 获取部门树。
+2. **第二步**：根据部门名称或路径关键词（如"AI"、"测试"）自行匹配最可能的部门。
+3. **第三步**：确认部门名称后，再使用 `contacts_getDepartmentMembers` 获取成员。
+
 ### 优先使用 `getDepartmentMembers`
 
 查询部门成员时，**强烈推荐**使用 `getDepartmentMembers` 而非 `getDepartmentInfo` + `getBatchUserInfo`：

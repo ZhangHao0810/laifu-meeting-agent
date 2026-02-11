@@ -46,6 +46,8 @@ function filterFields(employee, fields) {
 
 // Default fields for getDepartmentMembers to reduce context usage
 const DEFAULT_MEMBER_FIELDS = ['CODE', 'NAME', 'BASE_NAME', 'PHONE', 'ORG_PATH_NAME'];
+// Default fields for getAllDepartments to reduce context usage
+const DEFAULT_DEPT_FIELDS = ['ORG_ID', 'ORG_NAME', 'ORG_CODE', 'ORG_PATH_NAME', 'PARENT_ORG_ID', 'ORG_LEVEL', 'ORG_TYPE', 'MANAGER_NAME', 'MEMBER_COUNT'];
 
 // Create server instance
 const server = new Server(
@@ -198,6 +200,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                                     description: '每页数量，默认 20，最大 100',
                                 },
                             },
+                        },
+                    },
+                },
+            },
+            {
+                name: 'contacts_getAllDepartments',
+                description: '获取全量部门列表（扁平结构或树状结构），默认不返回成员列表以减少Token消耗',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        fields: {
+                            type: 'array',
+                            items: {
+                                type: 'string',
+                            },
+                            description: '需要返回的字段列表，不传则返回默认字段 [ORG_ID, ORG_NAME, ORG_CODE, ORG_PATH_NAME, PARENT_ORG_ID, ORG_LEVEL, ORG_TYPE, MANAGER_NAME, MEMBER_COUNT]',
+                        },
+                        tree: {
+                            type: 'boolean',
+                            description: '是否返回树状结构（默认为 false，返回扁平列表）',
                         },
                     },
                 },
@@ -560,6 +582,73 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     },
                 ],
             };
+        } else if (name === 'contacts_getAllDepartments') {
+            const { fields, tree } = args;
+
+            // Helper to filter department fields
+            function filterDepartment(dept) {
+                const selectedFields = fields || DEFAULT_DEPT_FIELDS;
+                const filtered = {};
+                selectedFields.forEach(field => {
+                    if (dept.hasOwnProperty(field)) {
+                        filtered[field] = dept[field];
+                    }
+                });
+                return filtered;
+            }
+
+            // Get filtered list
+            const filteredDepts = departments.map(d => filterDepartment(d));
+
+            // Build tree if requested
+            if (tree) {
+                const deptMap = new Map();
+                const roots = [];
+
+                // Create nodes
+                filteredDepts.forEach(dept => {
+                    dept.children = [];
+                    deptMap.set(dept.ORG_ID, dept);
+                });
+
+                // Build hierarchy
+                filteredDepts.forEach(dept => {
+                    if (dept.PARENT_ORG_ID && deptMap.has(dept.PARENT_ORG_ID)) {
+                        const parent = deptMap.get(dept.PARENT_ORG_ID);
+                        parent.children.push(dept);
+                    } else {
+                        roots.push(dept);
+                    }
+                });
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                content: roots,
+                                message: 'Api access succeeded (Tree Structure)',
+                                totalCount: departments.length,
+                                successFlag: true,
+                            }, null, 2),
+                        },
+                    ],
+                };
+            } else {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: JSON.stringify({
+                                content: filteredDepts,
+                                message: 'Api access succeeded (Flat List)',
+                                totalCount: filteredDepts.length,
+                                successFlag: true,
+                            }, null, 2),
+                        },
+                    ],
+                };
+            }
         } else {
             return {
                 content: [
