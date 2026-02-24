@@ -1,15 +1,15 @@
 {
     "mcpServers": {
-        "new-contacts": {
+        "contacts": {
             "command": "node",
             "args": [
-                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\new-contacts\\src\\index.js"
+                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\contacts\\src\\index.js"
             ]
         },
-        "fuxin-assistant": {
+        "meeting-assistant": {
             "command": "node",
             "args": [
-                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\fuxin-assistant\\src\\index.js"
+                "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\meeting-assistant\\src\\index.js"
             ]
         },
         "time-server": {

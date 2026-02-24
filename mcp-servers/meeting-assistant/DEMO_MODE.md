@@ -38,7 +38,7 @@ FuXin Assistant MCP Server 现在支持**内存中的状态管理**，适合演�
 运行演示脚本：
 
 ```bash
-cd fuxin-assistant
+cd meeting-assistant
 node demo_state_management.js
 ```
 

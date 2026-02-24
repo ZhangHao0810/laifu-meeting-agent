@@ -1,5 +1,5 @@
 {
-    "name": "new-contacts",
+    "name": "contacts",
     "version": "1.0.0",
     "description": "MCP server for employee and department information with mock data",
     "type": "module",

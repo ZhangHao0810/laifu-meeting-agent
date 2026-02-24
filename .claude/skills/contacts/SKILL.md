@@ -11,23 +11,23 @@ description: 通讯录专家，负责人员身份识别、组织归属查询及�
 
 | 用户请求 | 操作方法 |
 |---------|---------|
-| "我是王星，我的详细信息是什么？" | 先用 `getUserByName` 获取工号，再用 `getCloudUserInfo` 查询完整信息 |
-| "帮我找一下孙薇洁的联系方式" | 用 `getUserByName` 精确查询 |
-| "帮我找姓王的同事" | 用 `searchUsersByName` 模糊搜索 |
+| "我是王星，我的详细信息是什么？" | 先用 `contacts_getUserByName` 获取工号，再用 `contacts_getCloudUserInfo` 查询完整信息 |
+| "帮我找一下孙薇洁的联系方式" | 用 `contacts_getUserByName` 精确查询 |
+| "帮我找姓王的同事" | 用 `contacts_searchUsersByName` 模糊搜索 |
 
 ### 2. 部门人员查询
 
 | 用户请求 | 操作方法 |
 |---------|---------|
-| "我部门都有哪些同事在深圳？" | 用 `getUserByName` 获取用户部门，再用 `getDepartmentMembers` 过滤 `baseNames: ["深圳市"]` |
-| "给我测试部在深圳的人员名单" | 直接用 `getDepartmentMembers(orgName: "测试部", filters: {baseNames: ["深圳市"]})` |
-| "AI产品研发中心有多少人？" | 用 `getDepartmentInfo` 查询部门信息 |
+| "我部门都有哪些同事在深圳？" | 用 `contacts_getUserByName` 获取用户部门，再用 `contacts_getDepartmentMembers` 过滤 `baseNames: ["深圳市"]` |
+| "给我测试部在深圳的人员名单" | 直接用 `contacts_getDepartmentMembers(orgName: "测试部", filters: {baseNames: ["深圳市"]})` |
+| "AI产品研发中心有多少人？" | 用 `contacts_getDepartmentInfo` 查询部门信息 |
 
 ### 3. 批量查询
 
 | 用户请求 | 操作方法 |
 |---------|---------|
-| "帮我查一下工号 11528、11529、11530 的电话" | 用 `getBatchUserInfo(codes: ["11528", "11529", "11530"], fields: ["CODE", "NAME", "PHONE"])` |
+| "帮我查一下工号 11528、11529、11530 的电话" | 用 `contacts_getBatchUserInfo(codes: ["11528", "11529", "11530"], fields: ["CODE", "NAME", "PHONE"])` |
 
 ## 最佳实践
 
@@ -39,22 +39,28 @@ description: 通讯录专家，负责人员身份识别、组织归属查询及�
 2. **第二步**：根据部门名称或路径关键词（如"AI"、"测试"）自行匹配最可能的部门。
 3. **第三步**：确认部门名称后，再使用 `contacts_getDepartmentMembers` 获取成员。
 
-### 优先使用 `getDepartmentMembers`
+### 优先使用 `contacts_getDepartmentMembers`
 
-查询部门成员时，**强烈推荐**使用 `getDepartmentMembers` 而非 `getDepartmentInfo` + `getBatchUserInfo`：
+查询部门成员时，**强烈推荐**使用 `contacts_getDepartmentMembers` 而非 `contacts_getDepartmentInfo` + `contacts_getBatchUserInfo`：
 
 ```javascript
 // 不推荐（2次调用，~134KB数据）
-getDepartmentInfo(orgName: "AI产品研发中心")  // 返回146个成员工号
-getBatchUserInfo(codes: [146个工号])          // 返回完整对象
+contacts_getDepartmentInfo(orgName: "AI产品研发中心")  // 返回146个成员工号
+contacts_getBatchUserInfo(codes: [146个工号])          // 返回完整对象
 
 // 推荐（1次调用，~1KB数据）
-getDepartmentMembers(
+contacts_getDepartmentMembers(
   orgName: "AI产品研发中心",
   filters: { baseNames: ["深圳市"] },
   fields: ["CODE", "NAME", "PHONE", "EMAIL"]
 )
 ```
+
+### 异常降级策略
+
+当工具调用未能返回预期结果时，应采取降级策略保证任务完成：
+- **精确匹配失败**：如果 `contacts_getUserByName` 精确匹配不到人员，自动退化为使用 `contacts_searchUsersByName` 进行模糊搜索，并向用户确认其要找的人。
+- **部门过滤无数据**：如果使用 `contacts_getDepartmentMembers` 带了 `filters`（如查询深圳人员）但返回空结果，可以尝试去掉 `filters` 再次查询并自行甄别人名地名。
 
 ### 字段选择
 
@@ -65,16 +71,16 @@ getDepartmentMembers(
 ### 与会议系统联动
 
 当用户要求邀请部门成员参会时：
-1. 用 `getDepartmentMembers` 获取成员列表（提取 `IM_OPEN_ID` 或 `CODE`）
-2. 将获取的 openId 列表传递给会议系统的 `createMeeting` 或 `updateMeeting`
+1. 用 `contacts_getDepartmentMembers` 获取成员列表（提取 `IM_OPEN_ID` 或 `CODE`）
+2. 将获取的 openId 列表传递给会议系统的 `meeting_createMeeting` 或 `meeting_updateMeeting`
 
 ## 工具参考
 
 | 工具 | 用途 |
 |------|------|
-| `getUserByName` | 根据姓名获取工号 |
-| `getCloudUserInfo` | 根据工号获取完整信息 |
-| `searchUsersByName` | 模糊搜索（支持拼音） |
-| `getBatchUserInfo` | 批量查询 |
-| `getDepartmentInfo` | 部门基本信息 |
-| `getDepartmentMembers` | 部门成员（推荐，支持过滤） |
+| `contacts_getUserByName` | 根据姓名获取工号 |
+| `contacts_getCloudUserInfo` | 根据工号获取完整信息 |
+| `contacts_searchUsersByName` | 模糊搜索（支持拼音） |
+| `contacts_getBatchUserInfo` | 批量查询 |
+| `contacts_getDepartmentInfo` | 部门基本信息 |
+| `contacts_getDepartmentMembers` | 部门成员（推荐，支持过滤） |

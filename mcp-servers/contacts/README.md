@@ -17,7 +17,7 @@
 ## 安装
 
 ```bash
-cd e:\Super_Zhang_WorkSpace\laifu-meeting-agent\mcp-servers\new-contacts
+cd e:\Super_Zhang_WorkSpace\laifu-meeting-agent\mcp-servers\contacts
 npm install
 ```
 
@@ -54,9 +54,9 @@ npm start
 ```json
 {
   "mcpServers": {
-    "new-contacts": {
+    "contacts": {
       "command": "node",
-      "args": ["e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\new-contacts\\src\\index.js"]
+      "args": ["e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\contacts\\src\\index.js"]
     }
   }
 }
@@ -346,7 +346,7 @@ npm start
 ## 项目结构
 
 ```
-new-contacts/
+contacts/
 ├── src/
 │   ├── index.js              # MCP 服务器主程序
 │   └── generate-mock-data.js # Mock 数据生成脚本

@@ -11,7 +11,7 @@ async function queryAIShenzhenEmployees() {
 
     const transport = new StdioClientTransport({
         command: 'node',
-        args: ['../new-contacts/src/index.js']
+        args: ['../contacts/src/index.js']
     });
 
     const client = new Client({

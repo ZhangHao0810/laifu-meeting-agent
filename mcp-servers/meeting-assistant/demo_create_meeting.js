@@ -13,7 +13,7 @@ async function createMeetingDemo() {
     console.log('📞 步骤1: 连接通讯录服务，查询用户信息...\n');
     const contactsTransport = new StdioClientTransport({
         command: 'node',
-        args: ['../new-contacts/src/index.js']
+        args: ['../contacts/src/index.js']
     });
 
     const contactsClient = new Client({

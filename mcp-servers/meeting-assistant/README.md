@@ -23,7 +23,7 @@ FuXin 助手 MCP 服务器，整合会议室管理和日程管理功能，支持
 ## 安装
 
 ```bash
-cd fuxin-assistant
+cd meeting-assistant
 npm install
 ```
 
@@ -34,10 +34,10 @@ npm install
 ```json
 {
   "mcpServers": {
-    "fuxin-assistant": {
+    "meeting-assistant": {
       "command": "node",
       "args": [
-        "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\fuxin-assistant\\src\\index.js"
+        "e:\\Super_Zhang_WorkSpace\\laifu-meeting-agent\\mcp-servers\\meeting-assistant\\src\\index.js"
       ]
     }
   }
@@ -351,7 +351,7 @@ Token 有效期为 2 小时，系统会在过期前 5 分钟自动刷新。
 ### 项目结构
 
 ```
-fuxin-assistant/
+meeting-assistant/
 ├── src/
 │   ├── index.js              # MCP Server 入口
 │   ├── config.js             # 配置文件

@@ -1,5 +1,5 @@
 {
-    "name": "fuxin-assistant",
+    "name": "meeting-assistant",
     "version": "1.0.0",
     "description": "FuXin Assistant MCP Server - Meeting Room and Schedule Management",
     "type": "module",

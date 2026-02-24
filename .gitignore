@@ -27,5 +27,4 @@ mcp-servers/meeting-room/node_modules
 hs_err_pid*
 replay_pid*
 
-/mcp-servers/fuxin-assistant/node_modules/
-/mcp-servers/time-server/node_modules/
+/mcp-servers/*/node_modules/

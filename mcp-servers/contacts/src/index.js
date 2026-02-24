@@ -52,7 +52,7 @@ const DEFAULT_DEPT_FIELDS = ['ORG_ID', 'ORG_NAME', 'ORG_CODE', 'ORG_PATH_NAME', 
 // Create server instance
 const server = new Server(
     {
-        name: 'new-contacts',
+        name: 'contacts',
         version: '1.0.0',
     },
     {
