@@ -4,23 +4,9 @@ import {
     CallToolRequestSchema,
     ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { authManager } from './auth/fuxin-auth.js';
 import { CONFIG } from './config.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-
-// Load mock data (mutable for in-memory state management)
-let meetingRooms = JSON.parse(fs.readFileSync(join(__dirname, '../data/meeting-rooms.json'), 'utf-8'));
-let roomBookings = JSON.parse(fs.readFileSync(join(__dirname, '../data/room-bookings.json'), 'utf-8'));
-let meetings = JSON.parse(fs.readFileSync(join(__dirname, '../data/meetings.json'), 'utf-8'));
-
-console.error(`Loaded ${meetingRooms.length} meeting rooms, ${roomBookings.length} bookings, ${meetings.length} meetings`);
-console.error('[Demo Mode] In-memory state management enabled - changes will persist until server restart');
+import { logger } from './logger.js';
 
 // Create server instance
 const server = new Server(
@@ -39,7 +25,7 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: [
-            // Meeting Room Tools
+            // Meeting Room Tools (Use meeting-room token)
             {
                 name: 'meeting_hasNewMeetingRoomBooking',
                 description: '检查是否有新的会议室预订（用于轮询）',
@@ -114,7 +100,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     required: ['orderId'],
                 },
             },
-            // Schedule Tools
+            // Schedule Tools (Use schedule token)
             {
                 name: 'meeting_createMeeting',
                 description: '创建新会议',
@@ -310,537 +296,184 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: 'meeting_queryUserMeetings',
-                description: '查询指定用户的会议列表',
+                description: '查询指定用户创建或参与的会议列表，支持分页和状态过滤',
                 inputSchema: {
                     type: 'object',
                     properties: {
+                        openId: {
+                            type: 'string',
+                            description: '用户 openId（查询该用户的会议）',
+                        },
                         pageNum: {
                             type: 'number',
-                            description: '页码，从1开始',
+                            description: '页码，从 1 开始，默认 1',
                         },
                         pageSize: {
                             type: 'number',
-                            description: '每页大小（建议10-20）',
-                        },
-                        openId: {
-                            type: 'string',
-                            description: '用户 openId',
+                            description: '每页条数，建议 10-20，默认 10',
                         },
                         status: {
                             type: 'number',
-                            description: '会议状态过滤（0=未开始，1=已结束，null=所有）',
+                            description: '会议状态过滤（不传=全部，0=未开始，1=已结束）',
                         },
                     },
-                    required: ['pageNum', 'pageSize', 'openId'],
+                    required: ['openId'],
                 },
             },
         ],
     };
 });
 
+// Generic helper to perform requests (with full HTTP logging)
+async function performRequest(url, body, method = 'POST', toolName = 'unknown') {
+    const requestHeaders = { 'Content-Type': 'application/json' };
+    const requestBody = body || null;
+    const startTime = Date.now();
+
+    const response = await fetch(url, {
+        method,
+        headers: requestHeaders,
+        body: body ? JSON.stringify(body) : undefined
+    });
+
+    const durationMs = Date.now() - startTime;
+    const data = await response.json();
+
+    // Log the full HTTP round-trip to file
+    await logger.logRequest({
+        tool: toolName,
+        method,
+        url,
+        requestHeaders,
+        requestBody,
+        statusCode: response.status,
+        responseBody: data,
+        durationMs,
+    });
+
+    return {
+        content: [{
+            type: 'text',
+            text: JSON.stringify(data, null, 2)
+        }]
+    };
+}
+
 // Handle tool calls
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
+    // Log every tool invocation
+    await logger.logToolCall(name, args);
+
     try {
-        // Meeting Room Tools
+        // --- Meeting Room Tools (Use Meeting Room Token) ---
         if (name === 'meeting_hasNewMeetingRoomBooking') {
-            const { lastTime } = args;
-
-            let hasNew = false;
-            if (lastTime) {
-                const lastTimeNum = parseInt(lastTime);
-                hasNew = roomBookings.some(booking => parseInt(booking.updateTime) > lastTimeNum);
-            } else {
-                hasNew = roomBookings.length > 0;
-            }
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        hasNew: hasNew,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
+            const token = await authManager.getToken('meeting-room');
+            const body = {
+                eid: CONFIG.EID,
+                lastTime: args.lastTime
             };
+            return await performRequest(`${CONFIG.MEETING_ROOM_BASE_URL}/hasNew?accessToken=${token}`, body, 'POST', name);
         }
 
         else if (name === 'meeting_getMeetingRoomBookings') {
-            const { lastIndex, pageSize = 50 } = args;
-
-            let filteredBookings = roomBookings;
-            if (lastIndex) {
-                const lastIndexNum = parseInt(lastIndex);
-                filteredBookings = roomBookings.filter(booking => parseInt(booking.updateTime) > lastIndexNum);
-            }
-
-            const limitedBookings = filteredBookings.slice(0, Math.min(pageSize, 50));
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: {
-                            add: limitedBookings,
-                            delete: []
-                        },
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
+            const token = await authManager.getToken('meeting-room');
+            const body = {
+                eid: CONFIG.EID,
+                lastIndex: args.lastIndex,
+                pageSize: args.pageSize || 50
             };
+            return await performRequest(`${CONFIG.MEETING_ROOM_BASE_URL}/bookInfo?accessToken=${token}`, body, 'POST', name);
         }
 
         else if (name === 'meeting_getFreeMeetingRooms') {
+            const token = await authManager.getToken('meeting-room');
             const { openId, startTime, endTime, pageIndex = 1, pageSize = 50 } = args;
-
             if (!openId || !startTime) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: [],
-                            message: 'Missing required parameters: openId and startTime',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
+                return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: 'Missing openId or startTime' }) }] };
             }
-
-            // Simple mock: return all rooms (in real implementation, filter by time conflicts)
-            const start = (pageIndex - 1) * pageSize;
-            const paginatedRooms = meetingRooms.slice(start, start + pageSize);
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: paginatedRooms,
-                        records: paginatedRooms.length,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const body = { openId, startTime, endTime, pageIndex, pageSize };
+            return await performRequest(`${CONFIG.MEETING_ROOM_BASE_URL}/freeRooms?accessToken=${token}`, body, 'POST', name);
         }
 
         else if (name === 'meeting_getMeetingRoomAttendees') {
+            const token = await authManager.getToken('meeting-room');
             const { orderId } = args;
-
             if (!orderId) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: [],
-                            message: 'Missing required parameter: orderId',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
+                return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: 'Missing orderId' }) }] };
             }
-
-            // Mock attendees data
-            const mockAttendees = [];
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: mockAttendees,
-                        records: mockAttendees.length,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const body = { orderId };
+            return await performRequest(`${CONFIG.MEETING_ROOM_BASE_URL}/getActors?accessToken=${token}`, body, 'POST', name);
         }
 
-        // Schedule Tools
+        // --- Schedule Tools (Use Schedule Token) ---
         else if (name === 'meeting_createMeeting') {
-            const { openId, title, content, roomId, startDate, endDate, noticeTimes, actors } = args;
-
-            if (!openId || !title || !roomId || !startDate || !endDate) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: null,
-                            message: 'Missing required parameters',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
+            const token = await authManager.getToken('schedule');
+            // Backend API expects 'openid' (lowercase d)
+            const body = { ...args };
+            if (body.openId !== undefined) {
+                body.openid = body.openId;
+                delete body.openId;
             }
-
-            const newMeetingId = `meeting_${Date.now()}`;
-            const now = Date.now();
-
-            // Create new meeting object
-            const newMeeting = {
-                id: newMeetingId,
-                eid: CONFIG.EID,
-                title: title,
-                content: content || '',
-                roomId: roomId,
-                startDate: startDate,
-                endDate: endDate,
-                status: 0,
-                createDate: now,
-                updateTime: now,
-                openId: openId,
-                personName: 'Demo User',
-                participants: (actors || []).map(actorId => ({
-                    openId: actorId,
-                    personName: 'Participant',
-                    joinStatus: 0,
-                    readStatus: 0
-                })),
-                organizers: [{
-                    openId: openId,
-                    personName: 'Demo User'
-                }]
-            };
-
-            // Add to in-memory array
-            meetings.push(newMeeting);
-            console.error(`[Demo] Created meeting: ${newMeetingId} - "${title}"`);
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: {
-                            meetingId: newMeetingId
-                        },
-                        message: 'Meeting created successfully',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/create?accessToken=${token}`, body, 'POST', name);
         }
 
         else if (name === 'meeting_getMeetingDetail') {
-            const { id } = args;
-
-            if (!id) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: null,
-                            message: 'Missing required parameter: id',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            const meeting = meetings.find(m => m.id === id);
-
-            if (!meeting) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: null,
-                            message: 'Meeting not found',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: meeting,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const token = await authManager.getToken('schedule');
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/detail?accessToken=${token}`, args, 'POST', name);
         }
 
         else if (name === 'meeting_cancelMeeting') {
-            const { id, openId } = args;
-
-            if (!id || !openId) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: null,
-                            message: 'Missing required parameters',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            // Find and update meeting status
-            const meeting = meetings.find(m => m.id === id);
-            if (meeting) {
-                meeting.status = 2; // 2 = cancelled
-                meeting.updateTime = Date.now();
-                console.error(`[Demo] Cancelled meeting: ${id}`);
-            }
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: null,
-                        message: meeting ? 'Meeting cancelled successfully' : 'Meeting not found but marked as cancelled',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const token = await authManager.getToken('schedule');
+            const body = { ...args };
+            if (body.openId !== undefined) { body.openid = body.openId; delete body.openId; }
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/cancel?accessToken=${token}`, body, 'POST', name);
         }
 
         else if (name === 'meeting_queryMeetingsByDay') {
-            const { day } = args;
-
-            if (!day) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: [],
-                            message: 'Missing required parameter: day',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            // Simple mock: return all meetings
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: meetings,
-                        records: meetings.length,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const token = await authManager.getToken('schedule');
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/queryByDay?accessToken=${token}`, args, 'POST', name);
         }
 
         else if (name === 'meeting_updateMeeting') {
-            const { id, openId, title, content, startDate, endDate, roomId, addActors, delActors } = args;
-
-            if (!id || !openId) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: null,
-                            message: 'Missing required parameters: id and openId',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            // Find and update meeting
-            const meeting = meetings.find(m => m.id === id);
-            if (meeting) {
-                if (title) meeting.title = title;
-                if (content !== undefined) meeting.content = content;
-                if (startDate) meeting.startDate = startDate;
-                if (endDate) meeting.endDate = endDate;
-                if (roomId) meeting.roomId = roomId;
-                meeting.updateTime = Date.now();
-
-                // Handle participant changes
-                if (addActors && addActors.length > 0) {
-                    addActors.forEach(actorId => {
-                        if (!meeting.participants.some(p => p.openId === actorId)) {
-                            meeting.participants.push({
-                                openId: actorId,
-                                personName: 'New Participant',
-                                joinStatus: 0,
-                                readStatus: 0
-                            });
-                        }
-                    });
-                }
-
-                if (delActors && delActors.length > 0) {
-                    meeting.participants = meeting.participants.filter(
-                        p => !delActors.includes(p.openId)
-                    );
-                }
-
-                console.error(`[Demo] Updated meeting: ${id}`);
-            }
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: null,
-                        message: meeting ? 'Meeting updated successfully' : 'Meeting not found but marked as updated',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const token = await authManager.getToken('schedule');
+            const body = { ...args };
+            if (body.openId !== undefined) { body.openid = body.openId; delete body.openId; }
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/modify?accessToken=${token}`, body, 'POST', name);
         }
 
         else if (name === 'meeting_queryMeetingsByRange') {
-            const { start, end } = args;
-
-            if (!start || !end) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: [],
-                            message: 'Missing required parameters: start and end',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            // Mock: filter meetings by time range
-            const filteredMeetings = meetings.filter(m =>
-                m.startDate >= start && m.endDate <= end
-            );
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: filteredMeetings,
-                        records: filteredMeetings.length,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const token = await authManager.getToken('schedule');
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/queryByRange?accessToken=${token}`, args, 'POST', name);
         }
 
         else if (name === 'meeting_getRecentMeetings') {
-            const { lastTime, page, size, roomIds } = args;
-
-            if (!page || !size) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: [],
-                            message: 'Missing required parameters: page and size',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
-            }
-
-            let filteredMeetings = meetings;
-
-            // Filter by lastTime if provided
-            if (lastTime) {
-                filteredMeetings = filteredMeetings.filter(m =>
-                    (m.updateTime || m.createDate) > lastTime
-                );
-            }
-
-            // Filter by roomIds if provided
-            if (roomIds && roomIds.length > 0) {
-                filteredMeetings = filteredMeetings.filter(m =>
-                    roomIds.includes(m.roomId)
-                );
-            }
-
-            // Pagination
-            const start = (page - 1) * size;
-            const paginatedMeetings = filteredMeetings.slice(start, start + size);
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: paginatedMeetings,
-                        records: paginatedMeetings.length,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const token = await authManager.getToken('schedule');
+            // The endpoint according to docs is pageRecentList
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/pageRecentList?accessToken=${token}`, args, 'POST', name);
         }
 
         else if (name === 'meeting_queryUserMeetings') {
-            const { pageNum, pageSize, openId, status } = args;
-
-            if (!pageNum || !pageSize || !openId) {
-                return {
-                    content: [{
-                        type: 'text',
-                        text: JSON.stringify({
-                            content: [],
-                            message: 'Missing required parameters: pageNum, pageSize, and openId',
-                            successFlag: false,
-                        }, null, 2),
-                    }],
-                };
+            const token = await authManager.getToken('schedule');
+            const { openId, pageNum = 1, pageSize = 10, status } = args;
+            if (!openId) {
+                return { content: [{ type: 'text', text: JSON.stringify({ success: false, message: 'Missing openId' }) }] };
             }
-
-            // Filter meetings by openId (creator or participant)
-            let userMeetings = meetings.filter(m => {
-                if (m.openId === openId) return true;
-                if (m.participants && m.participants.some(p => p.openId === openId)) return true;
-                return false;
-            });
-
-            // Filter by status if provided
-            if (status !== undefined && status !== null) {
-                userMeetings = userMeetings.filter(m => m.status === status);
-            }
-
-            // Pagination
-            const start = (pageNum - 1) * pageSize;
-            const paginatedMeetings = userMeetings.slice(start, start + pageSize);
-
-            return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        content: paginatedMeetings,
-                        records: paginatedMeetings.length,
-                        totalRecords: userMeetings.length,
-                        message: 'Api access succeeded',
-                        successFlag: true,
-                    }, null, 2),
-                }],
-            };
+            const body = { pageNum, pageSize, openId, ...(status !== undefined ? { status } : {}) };
+            return await performRequest(`${CONFIG.SCHEDULE_BASE_URL}/queryByUser?accessToken=${token}`, body, 'POST', name);
         }
 
         else {
             return {
-                content: [{
-                    type: 'text',
-                    text: JSON.stringify({
-                        error: `Unknown tool: ${name}`,
-                    }, null, 2),
-                }],
+                content: [{ type: 'text', text: JSON.stringify({ error: `Unknown tool: ${name}` }, null, 2) }],
                 isError: true,
             };
         }
     } catch (error) {
+        await logger.logError(name, error);
         return {
-            content: [{
-                type: 'text',
-                text: JSON.stringify({
-                    error: error.message,
-                    successFlag: false,
-                }, null, 2),
-            }],
+            content: [{ type: 'text', text: JSON.stringify({ error: error.message }, null, 2) }],
             isError: true,
         };
     }
@@ -850,7 +483,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error('FuXin Assistant MCP Server running on stdio');
+    process.stderr.write(`Meeting Assistant MCP Server running on stdio\nLogs → ${logger.LOG_FILE}\n`);
 }
 
 main().catch((error) => {

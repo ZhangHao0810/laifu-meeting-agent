@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { logger } from '../logger.js';
 
 /**
  * FuXin Authentication Manager
@@ -72,37 +73,57 @@ export class FuXinAuthManager {
             scope: CONFIG.SCOPE
         };
 
+        const requestHeaders = { 'Content-Type': 'application/json' };
+        const startTime = Date.now();
+        const authUrl = `${CONFIG.AUTH_BASE_URL}/getAccessToken`;
+        const toolLabel = `auth:getAccessToken(${assistantType})`;
+
+        let response, data;
         try {
-            const response = await fetch(`${CONFIG.AUTH_BASE_URL}/getAccessToken`, {
+            response = await fetch(authUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: requestHeaders,
                 body: JSON.stringify(requestBody)
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.success || data.errorCode !== 0) {
-                throw new Error(data.error || 'Failed to get access token');
-            }
-
-            // Store token info
-            const now = Date.now();
-            this.tokens[assistantType] = {
-                accessToken: data.data.accessToken,
-                refreshToken: data.data.refreshToken,
-                expiresAt: now + (data.data.expireIn * 1000)  // Convert seconds to milliseconds
-            };
-
-            console.log(`[Auth] New token obtained for ${assistantType}, expires at ${new Date(this.tokens[assistantType].expiresAt).toISOString()}`);
-        } catch (error) {
-            throw new Error(`Failed to fetch new token for ${assistantType}: ${error.message}`);
+        } catch (networkError) {
+            // Network-level failure (DNS / connection refused / timeout)
+            await logger.logError(toolLabel, `Network error calling ${authUrl}: ${networkError.message}`);
+            throw new Error(`Failed to fetch new token for ${assistantType}: ${networkError.message}`);
         }
+
+        const durationMs = Date.now() - startTime;
+
+        // Try to parse body regardless of HTTP status
+        try { data = await response.json(); } catch { data = null; }
+
+        // Always log the request/response before any throw
+        await logger.logRequest({
+            tool: toolLabel,
+            method: 'POST',
+            url: authUrl,
+            requestHeaders,
+            requestBody,
+            statusCode: response.status,
+            responseBody: data,
+            durationMs,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch new token for ${assistantType}: HTTP ${response.status}: ${response.statusText}`);
+        }
+        if (!data || !data.success || data.errorCode !== 0) {
+            throw new Error(`Failed to fetch new token for ${assistantType}: ${data?.error || 'Unexpected response'}`);
+        }
+
+        // Store token info
+        const now = Date.now();
+        this.tokens[assistantType] = {
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+            expiresAt: now + (data.data.expireIn * 1000)
+        };
+
+        process.stderr.write(`[Auth] New token obtained for ${assistantType}, expires at ${new Date(this.tokens[assistantType].expiresAt).toISOString()}\n`);
     }
 
     /**
@@ -125,37 +146,54 @@ export class FuXinAuthManager {
             scope: CONFIG.SCOPE
         };
 
+        const requestHeaders = { 'Content-Type': 'application/json' };
+        const startTime = Date.now();
+        const refreshUrl = `${CONFIG.AUTH_BASE_URL}/refreshToken`;
+        const toolLabel = `auth:refreshToken(${assistantType})`;
+
+        let response, data;
         try {
-            const response = await fetch(`${CONFIG.AUTH_BASE_URL}/refreshToken`, {
+            response = await fetch(refreshUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: requestHeaders,
                 body: JSON.stringify(requestBody)
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.success || data.errorCode !== 0) {
-                throw new Error(data.error || 'Failed to refresh token');
-            }
-
-            // Update token info
-            const now = Date.now();
-            this.tokens[assistantType] = {
-                accessToken: data.data.accessToken,
-                refreshToken: data.data.refreshToken,
-                expiresAt: now + (data.data.expireIn * 1000)
-            };
-
-            console.log(`[Auth] Token refreshed for ${assistantType}, expires at ${new Date(this.tokens[assistantType].expiresAt).toISOString()}`);
-        } catch (error) {
-            throw new Error(`Failed to refresh token for ${assistantType}: ${error.message}`);
+        } catch (networkError) {
+            await logger.logError(toolLabel, `Network error calling ${refreshUrl}: ${networkError.message}`);
+            throw new Error(`Failed to refresh token for ${assistantType}: ${networkError.message}`);
         }
+
+        const durationMs = Date.now() - startTime;
+
+        try { data = await response.json(); } catch { data = null; }
+
+        await logger.logRequest({
+            tool: toolLabel,
+            method: 'POST',
+            url: refreshUrl,
+            requestHeaders,
+            requestBody,
+            statusCode: response.status,
+            responseBody: data,
+            durationMs,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to refresh token for ${assistantType}: HTTP ${response.status}: ${response.statusText}`);
+        }
+        if (!data || !data.success || data.errorCode !== 0) {
+            throw new Error(`Failed to refresh token for ${assistantType}: ${data?.error || 'Unexpected response'}`);
+        }
+
+        // Update token info
+        const now = Date.now();
+        this.tokens[assistantType] = {
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+            expiresAt: now + (data.data.expireIn * 1000)
+        };
+
+        process.stderr.write(`[Auth] Token refreshed for ${assistantType}, expires at ${new Date(this.tokens[assistantType].expiresAt).toISOString()}\n`);
     }
 
     /**

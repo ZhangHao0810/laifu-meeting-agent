@@ -37,6 +37,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     },
                 },
             },
+            {
+                name: 'time_toTimestamp',
+                description: 'Convert a date-time string in a given timezone to a Unix millisecond timestamp. Use this when booking meetings to accurately convert natural-language times (e.g. "today 3pm") into timestamps, avoiding arithmetic errors.',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        dateStr: {
+                            type: 'string',
+                            description: 'Date-time string in format "YYYY-MM-DD HH:mm:ss", e.g. "2026-02-25 15:00:00"',
+                        },
+                        timezone: {
+                            type: 'string',
+                            description: 'Timezone identifier, default "Asia/Shanghai"',
+                        },
+                    },
+                    required: ['dateStr'],
+                },
+            },
         ],
     };
 });
@@ -92,6 +110,54 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 isError: true,
             };
         }
+
+    } else if (name === 'time_toTimestamp') {
+        const { dateStr, timezone = 'Asia/Shanghai' } = args || {};
+        if (!dateStr) {
+            return {
+                content: [{ type: 'text', text: 'Error: dateStr is required' }],
+                isError: true,
+            };
+        }
+        try {
+            // Parse dateStr as local time in the target timezone.
+            // Strategy: treat the string as UTC, measure the TZ offset at that moment, then correct.
+            const [datePart, timePart = '00:00:00'] = dateStr.trim().split(' ');
+            const utcDate = new Date(`${datePart}T${timePart}Z`); // treated as UTC first
+
+            // Format the same UTC instant in target timezone (sv-SE gives "YYYY-MM-DD HH:mm:ss")
+            const localStr = new Intl.DateTimeFormat('sv-SE', {
+                timeZone: timezone,
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false,
+            }).format(utcDate).replace(' ', 'T');
+
+            // diff = how far UTC is from local at this moment
+            const localAsUtc = new Date(`${localStr}Z`);
+            const offsetMs = utcDate.getTime() - localAsUtc.getTime();
+
+            // actual ms = our naive UTC parse + the offset correction
+            const actualTimestamp = utcDate.getTime() + offsetMs;
+
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify({
+                        input: dateStr,
+                        timezone,
+                        timestamp: actualTimestamp,
+                        iso: new Date(actualTimestamp).toISOString(),
+                    }, null, 2),
+                }],
+            };
+        } catch (error) {
+            return {
+                content: [{ type: 'text', text: `Error: ${error.message}` }],
+                isError: true,
+            };
+        }
+
     } else {
         return {
             content: [

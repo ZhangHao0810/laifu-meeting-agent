@@ -1,0 +1,25 @@
+{
+    "skills": {
+        "enabled": true
+    },
+    "mcpServers": {
+        "contacts": {
+            "command": "node",
+            "args": [
+                "e:\\会议室预定智能体测试\\laifu-meeting-agent\\mcp-servers\\contacts\\src\\index.js"
+            ]
+        },
+        "meeting-assistant": {
+            "command": "node",
+            "args": [
+                "e:\\会议室预定智能体测试\\laifu-meeting-agent\\mcp-servers\\meeting-assistant\\src\\index.js"
+            ]
+        },
+        "time-server": {
+            "command": "node",
+            "args": [
+                "e:\\会议室预定智能体测试\\laifu-meeting-agent\\mcp-servers\\time-server\\src\\index.js"
+            ]
+        }
+    }
+}

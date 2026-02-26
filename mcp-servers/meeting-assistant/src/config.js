@@ -5,14 +5,14 @@ export const CONFIG = {
     EID: '25185534',
 
     // FuXin API endpoints
-    AUTH_BASE_URL: 'https://lim.zhongfu.net/gateway/oauth2/token',
-    MEETING_ROOM_BASE_URL: 'https://lim.zhongfu.net/api/roomBook/third',
+    AUTH_BASE_URL: 'https://im.zhongfu.net/gateway/oauth2/token',
+    MEETING_ROOM_BASE_URL: 'https://im.zhongfu.net/api/roomBook/third',
     SCHEDULE_BASE_URL: 'https://im.zhongfu.net/gateway/cloudwork/meeting',
 
     // Assistant secrets
     SECRETS: {
-        'meeting-room': process.env.FUXIN_MEETING_ROOM_SECRET || 'SZwtuH1HIvZuL0TcT6zsStCqTSN0J3',
-        'schedule': process.env.FUXIN_SCHEDULE_SECRET || 'ec8hdjYrbLCizw8UUr9V8cwPJaJu5v1'
+        'meeting-room': process.env.FUXIN_MEETING_ROOM_SECRET || 'SZwtuH1HivZul0TcKT6zsStCqS0TSN0J',
+        'schedule': process.env.FUXIN_SCHEDULE_SECRET || 'eC8hDjYrBLCizw8UUr9V80cWP4aJu5v1'
     },
 
     // Token refresh settings
