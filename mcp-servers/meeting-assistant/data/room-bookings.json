@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "bookingId": "booking_meeting_1772072951859",
+    "meetingId": "meeting_1772072951859",
+    "roomId": "room_sz_001",
+    "startDate": 1772089200000,
+    "endDate": 1772096400000,
+    "status": 0,
+    "updateTime": 1772072951859
+  }
+]

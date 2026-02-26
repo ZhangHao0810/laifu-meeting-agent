@@ -14,13 +14,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 
-// Load mock data (mutable for in-memory state management)
-let meetingRooms = JSON.parse(fs.readFileSync(join(__dirname, '../data/meeting-rooms.json'), 'utf-8'));
-let roomBookings = JSON.parse(fs.readFileSync(join(__dirname, '../data/room-bookings.json'), 'utf-8'));
-let meetings = JSON.parse(fs.readFileSync(join(__dirname, '../data/meetings.json'), 'utf-8'));
+// File paths for persistence
+const MEETING_ROOMS_FILE = join(__dirname, '../data/meeting-rooms.json');
+const ROOM_BOOKINGS_FILE = join(__dirname, '../data/room-bookings.json');
+const MEETINGS_FILE = join(__dirname, '../data/meetings.json');
+
+// Load mock data (mutable, file-backed)
+let meetingRooms = JSON.parse(fs.readFileSync(MEETING_ROOMS_FILE, 'utf-8'));
+let roomBookings = JSON.parse(fs.readFileSync(ROOM_BOOKINGS_FILE, 'utf-8'));
+let meetings = JSON.parse(fs.readFileSync(MEETINGS_FILE, 'utf-8'));
+
+// Persist helpers — write back to JSON files synchronously
+function saveMeetings() {
+    fs.writeFileSync(MEETINGS_FILE, JSON.stringify(meetings, null, 2), 'utf-8');
+    console.error(`[Persist] meetings.json updated (${meetings.length} records)`);
+}
+
+function saveRoomBookings() {
+    fs.writeFileSync(ROOM_BOOKINGS_FILE, JSON.stringify(roomBookings, null, 2), 'utf-8');
+    console.error(`[Persist] room-bookings.json updated (${roomBookings.length} records)`);
+}
 
 console.error(`Loaded ${meetingRooms.length} meeting rooms, ${roomBookings.length} bookings, ${meetings.length} meetings`);
-console.error('[Demo Mode] In-memory state management enabled - changes will persist until server restart');
+console.error('[Persist Mode] Data will be saved to files — changes survive restarts');
 
 // Create server instance
 const server = new Server(
@@ -158,6 +174,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                                 type: 'string',
                             },
                             description: '与会人 openId 列表',
+                        },
+                        personName: {
+                            type: 'string',
+                            description: '会议发起人姓名（可选，用于记录，如"王星"）',
                         },
                     },
                     required: ['openId', 'title', 'roomId', 'startDate', 'endDate'],
@@ -409,9 +429,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 };
             }
 
-            // Simple mock: return all rooms (in real implementation, filter by time conflicts)
+            // Real conflict detection: exclude rooms with overlapping active bookings
+            const queryEnd = endTime || (startTime + 3600000);
+            const bookedRoomIds = new Set(
+                roomBookings
+                    .filter(b => b.status !== 2 && b.startDate < queryEnd && b.endDate > startTime)
+                    .map(b => b.roomId)
+            );
+            const freeRooms = meetingRooms.filter(r => !bookedRoomIds.has(r.roomId));
             const start = (pageIndex - 1) * pageSize;
-            const paginatedRooms = meetingRooms.slice(start, start + pageSize);
+            const paginatedRooms = freeRooms.slice(start, start + pageSize);
 
             return {
                 content: [{
@@ -419,6 +446,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     text: JSON.stringify({
                         content: paginatedRooms,
                         records: paginatedRooms.length,
+                        total: freeRooms.length,
                         message: 'Api access succeeded',
                         successFlag: true,
                     }, null, 2),
@@ -460,7 +488,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Schedule Tools
         else if (name === 'meeting_createMeeting') {
-            const { openId, title, content, roomId, startDate, endDate, noticeTimes, actors } = args;
+            const { openId, title, content, roomId, startDate, endDate, noticeTimes, actors, personName } = args;
 
             if (!openId || !title || !roomId || !startDate || !endDate) {
                 return {
@@ -477,6 +505,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             const newMeetingId = `meeting_${Date.now()}`;
             const now = Date.now();
+            const creatorName = personName || 'Unknown';
 
             // Create new meeting object
             const newMeeting = {
@@ -491,7 +520,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 createDate: now,
                 updateTime: now,
                 openId: openId,
-                personName: 'Demo User',
+                personName: creatorName,
                 participants: (actors || []).map(actorId => ({
                     openId: actorId,
                     personName: 'Participant',
@@ -500,13 +529,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 })),
                 organizers: [{
                     openId: openId,
-                    personName: 'Demo User'
+                    personName: creatorName
                 }]
             };
 
-            // Add to in-memory array
+            // Add meeting and sync room booking
             meetings.push(newMeeting);
-            console.error(`[Demo] Created meeting: ${newMeetingId} - "${title}"`);
+            saveMeetings();
+
+            roomBookings.push({
+                bookingId: `booking_${newMeetingId}`,
+                meetingId: newMeetingId,
+                roomId: roomId,
+                startDate: startDate,
+                endDate: endDate,
+                status: 0,
+                updateTime: now,
+            });
+            saveRoomBookings();
+
+            console.error(`[Persist] Created meeting: ${newMeetingId} - "${title}" by ${creatorName}`);
 
             return {
                 content: [{
@@ -581,12 +623,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 };
             }
 
-            // Find and update meeting status
+            // Find, update and persist
             const meeting = meetings.find(m => m.id === id);
             if (meeting) {
                 meeting.status = 2; // 2 = cancelled
                 meeting.updateTime = Date.now();
-                console.error(`[Demo] Cancelled meeting: ${id}`);
+                saveMeetings();
+
+                // Remove room booking for this meeting
+                const bookingsBefore = roomBookings.length;
+                roomBookings = roomBookings.filter(b => b.meetingId !== id);
+                if (roomBookings.length !== bookingsBefore) {
+                    saveRoomBookings();
+                }
+                console.error(`[Persist] Cancelled meeting: ${id}`);
             }
 
             return {
@@ -647,7 +697,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 };
             }
 
-            // Find and update meeting
+            // Find, update and persist
             const meeting = meetings.find(m => m.id === id);
             if (meeting) {
                 if (title) meeting.title = title;
@@ -677,7 +727,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     );
                 }
 
-                console.error(`[Demo] Updated meeting: ${id}`);
+                saveMeetings();
+
+                // Sync room-bookings when time or room changed
+                const booking = roomBookings.find(b => b.meetingId === id);
+                if (booking && (startDate || endDate || roomId)) {
+                    if (startDate) booking.startDate = startDate;
+                    if (endDate) booking.endDate = endDate;
+                    if (roomId) booking.roomId = roomId;
+                    booking.updateTime = Date.now();
+                    saveRoomBookings();
+                    console.error(`[Persist] Synced room-booking for meeting: ${id}`);
+                }
+
+                console.error(`[Persist] Updated meeting: ${id}`);
             }
 
             return {

@@ -1,1 +1,72 @@
-[]
+[
+  {
+    "id": "meeting_1772072951859",
+    "eid": "25185534",
+    "title": "AI 问题研讨",
+    "content": "AI 问题研讨会议哈哈哈哈哈哈哈哈",
+    "roomId": "room_sz_001",
+    "startDate": 1772089200000,
+    "endDate": 1772096400000,
+    "status": 0,
+    "createDate": 1772072951859,
+    "updateTime": 1772073143829,
+    "openId": "c9f2a2c0ca2883f4ada5f11c",
+    "personName": "王星",
+    "participants": [
+      {
+        "openId": "c9f2a2c0ca2883f4ada5f11c",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "2d684451efa4fd818ee3057b",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "6da168042ca956b3dddaf1d2",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "e149ce2e0ae48b69d2947884",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "4980268c905e9fdf2b4b9132",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "55238589249c4fa12a082f24",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "e8fbce0c575aa1af1bd22793",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      },
+      {
+        "openId": "3e85a29d23a4aec7e3e607ff",
+        "personName": "Participant",
+        "joinStatus": 0,
+        "readStatus": 0
+      }
+    ],
+    "organizers": [
+      {
+        "openId": "c9f2a2c0ca2883f4ada5f11c",
+        "personName": "王星"
+      }
+    ]
+  }
+]
