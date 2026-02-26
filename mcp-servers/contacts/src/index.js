@@ -44,6 +44,27 @@ function filterFields(employee, fields) {
     return filtered;
 }
 
+// Transform field names for output
+function transformEmployee(emp) {
+    if (!emp) return emp;
+    const result = { ...emp };
+    if (result.IM_OPEN_ID !== undefined) {
+        result.OPEN_ID = result.IM_OPEN_ID;
+        delete result.IM_OPEN_ID;
+    }
+    return result;
+}
+
+function transformDepartment(dept) {
+    if (!dept) return dept;
+    const result = { ...dept };
+    if (result.MANAGER_IM_OPEN_ID !== undefined) {
+        result.MANAGER_OPEN_ID = result.MANAGER_IM_OPEN_ID;
+        delete result.MANAGER_IM_OPEN_ID;
+    }
+    return result;
+}
+
 // Default fields for getDepartmentMembers to reduce context usage
 const DEFAULT_MEMBER_FIELDS = ['CODE', 'NAME', 'BASE_NAME', 'PHONE', 'ORG_PATH_NAME'];
 // Default fields for getAllDepartments to reduce context usage
@@ -260,7 +281,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                         {
                             type: 'text',
                             text: JSON.stringify({
-                                content: [employee],
+                                content: [transformEmployee(employee)],
                                 message: 'Api access succeeded',
                                 records: 1,
                                 successFlag: true,
@@ -315,7 +336,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                         {
                             type: 'text',
                             text: JSON.stringify({
-                                content: [department],
+                                content: [transformDepartment(department)],
                                 message: 'Api access succeeded',
                                 records: 1,
                                 successFlag: true,
@@ -369,7 +390,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                         {
                             type: 'text',
                             text: JSON.stringify({
-                                content: matchedEmployees,
+                                content: matchedEmployees.map(transformEmployee),
                                 message: message,
                                 records: matchedEmployees.length,
                                 successFlag: true,
@@ -432,7 +453,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     {
                         type: 'text',
                         text: JSON.stringify({
-                            content: foundEmployees,
+                            content: foundEmployees.map(transformEmployee),
                             notFound: notFoundCodes,
                             message: message,
                             records: foundEmployees.length,
@@ -476,6 +497,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 PINYIN: emp.PINYIN,
                 ORG_PATH_NAME: emp.ORG_PATH_NAME,
                 BASE_NAME: emp.BASE_NAME,
+                OPEN_ID: emp.IM_OPEN_ID,
             }));
 
             return {
@@ -566,12 +588,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     {
                         type: 'text',
                         text: JSON.stringify({
-                            content: paginatedMembers,
-                            department: {
+                            content: paginatedMembers.map(transformEmployee),
+                            department: transformDepartment({
                                 ORG_ID: department.ORG_ID,
                                 ORG_NAME: department.ORG_NAME,
                                 MEMBER_COUNT: department.MEMBER_COUNT,
-                            },
+                            }),
                             filtered: {
                                 totalMatches: totalMatches,
                                 returned: paginatedMembers.length,
@@ -598,7 +620,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
 
             // Get filtered list
-            const filteredDepts = departments.map(d => filterDepartment(d));
+            const filteredDepts = departments.map(d => transformDepartment(filterDepartment(d)));
 
             // Build tree if requested
             if (tree) {
