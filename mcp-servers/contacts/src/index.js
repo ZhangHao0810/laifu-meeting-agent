@@ -62,6 +62,12 @@ function transformDepartment(dept) {
         result.MANAGER_OPEN_ID = result.MANAGER_IM_OPEN_ID;
         delete result.MANAGER_IM_OPEN_ID;
     }
+
+    // Remove member details to limit context and force using getDepartmentMembers instead
+    delete result.MEMBER_IDS;
+    delete result.MEMBER_CODES;
+    delete result.MEMBER_NAMES;
+
     return result;
 }
 
@@ -88,22 +94,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: [
             {
-                name: 'contacts_getCloudUserInfo',
-                description: '根据人员 code（工号/员工编号）查询云端用户详细信息',
-                inputSchema: {
-                    type: 'object',
-                    properties: {
-                        code: {
-                            type: 'string',
-                            description: '员工编号 / 工号',
-                        },
-                    },
-                    required: ['code'],
-                },
-            },
-            {
                 name: 'contacts_getDepartmentInfo',
-                description: '根据部门 ID 或部门名称查询部门详细信息，包括部门基本信息、层级关系、部门内成员列表等',
+                description: '根据部门 ID 或部门名称查询部门基础信息。注意：此工具仅返回部门架构！【非常重要】：如果你想获取部门下的具体成员名单、手机号、或按 BASE 地过滤员工，请绝对不要自己遍历查询，必须直接使用专门的高效工具 contacts_getDepartmentMembers！',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -119,22 +111,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 },
             },
             {
-                name: 'contacts_getUserByName',
-                description: '根据员工姓名查询员工信息（主要用于获取工号、BASE地等）',
-                inputSchema: {
-                    type: 'object',
-                    properties: {
-                        name: {
-                            type: 'string',
-                            description: '员工姓名（精确匹配）',
-                        },
-                    },
-                    required: ['name'],
-                },
-            },
-            {
                 name: 'contacts_getBatchUserInfo',
-                description: '批量查询多个员工的详细信息',
+                description: '根据工号(code)批量或单个查询员工详细信息。当你有多个员工code时，请务必将它们放入数组一次性调用此工具，严禁使用循环单次查询。支持传入单个 code。',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -254,57 +232,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
     try {
-        if (name === 'contacts_getCloudUserInfo') {
-            const { code } = args;
-
-            if (!code) {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: JSON.stringify({
-                                content: [],
-                                message: 'Missing required parameter: code',
-                                records: 0,
-                                successFlag: false,
-                            }, null, 2),
-                        },
-                    ],
-                };
-            }
-
-            const employee = employees.find(emp => emp.CODE === code);
-
-            if (employee) {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: JSON.stringify({
-                                content: [transformEmployee(employee)],
-                                message: 'Api access succeeded',
-                                records: 1,
-                                successFlag: true,
-                            }, null, 2),
-                        },
-                    ],
-                };
-            } else {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: JSON.stringify({
-                                content: [],
-                                message: 'Employee not found',
-                                records: 0,
-                                successFlag: true,
-                            }, null, 2),
-                        },
-                    ],
-                };
-            }
-        } else if (name === 'contacts_getDepartmentInfo') {
+        if (name === 'contacts_getDepartmentInfo') {
             const { orgId, orgName } = args;
 
             if (!orgId && !orgName) {
@@ -352,60 +280,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                             text: JSON.stringify({
                                 content: [],
                                 message: 'Department not found',
-                                records: 0,
-                                successFlag: true,
-                            }, null, 2),
-                        },
-                    ],
-                };
-            }
-        } else if (name === 'contacts_getUserByName') {
-            const { name: userName } = args;
-
-            if (!userName) {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: JSON.stringify({
-                                content: [],
-                                message: 'Missing required parameter: name',
-                                records: 0,
-                                successFlag: false,
-                            }, null, 2),
-                        },
-                    ],
-                };
-            }
-
-            const matchedEmployees = employees.filter(emp => emp.NAME === userName);
-
-            if (matchedEmployees.length > 0) {
-                const message = matchedEmployees.length > 1
-                    ? 'Multiple employees found with the same name'
-                    : 'Api access succeeded';
-
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: JSON.stringify({
-                                content: matchedEmployees.map(transformEmployee),
-                                message: message,
-                                records: matchedEmployees.length,
-                                successFlag: true,
-                            }, null, 2),
-                        },
-                    ],
-                };
-            } else {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: JSON.stringify({
-                                content: [],
-                                message: 'Employee not found',
                                 records: 0,
                                 successFlag: true,
                             }, null, 2),

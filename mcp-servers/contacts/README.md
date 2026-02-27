@@ -4,11 +4,9 @@
 
 ## 功能特性
 
-- **查询员工信息** (`getCloudUserInfo`): 根据工号查询员工详细信息
-- **查询部门信息** (`getDepartmentInfo`): 根据部门 ID 或名称查询部门信息及成员列表
+- **查询部门信息** (`getDepartmentInfo`): 根据部门 ID 或名称查询部门基础信息（不含成员列表）
 - **查询部门成员** (`getDepartmentMembers`): 🌟 **推荐** 查询部门成员并支持过滤（BASE地等）、字段选择，减少99%上下文占用
-- **根据姓名查询** (`getUserByName`): 根据员工姓名查询员工信息（主要用于获取工号、BASE地等）
-- **批量查询员工** (`getBatchUserInfo`): 批量查询多个员工的详细信息，支持字段过滤
+- **查询员工** (`getBatchUserInfo`): 根据工号批量或单个查询员工详细信息，支持字段过滤
 - **模糊搜索员工** (`searchUsersByName`): 根据姓名关键词模糊搜索员工
 - **真实的 Mock 数据**: 约 2000 名员工，包含真实的中文姓名、电话、邮箱等信息
 - **完整的组织架构**: 基于实际的部门层级结构
@@ -66,44 +64,9 @@ npm start
 
 ## API 接口
 
-### 1. getCloudUserInfo - 查询员工信息
+### 1. getDepartmentInfo - 查询部门基础信息
 
-根据工号查询员工详细信息。
-
-**参数**:
-- `code` (string, 必填): 员工工号
-
-**示例**:
-```json
-{
-  "code": "10001"
-}
-```
-
-**返回**:
-```json
-{
-  "content": [
-    {
-      "CODE": "10001",
-      "NAME": "张三",
-      "PINYIN": "zhangsan",
-      "EMAIL": "zhangsan@zhongfu.net",
-      "PHONE": "13812345678",
-      "ORG_PATH_NAME": "公司\\某科技有限公司\\业务中台\\AI产品研发中心",
-      "IM_OPEN_ID": "644db4447e4b00d5d7f029ee2",
-      ...
-    }
-  ],
-  "message": "Api access succeeded",
-  "records": 1,
-  "successFlag": true
-}
-```
-
-### 2. getDepartmentInfo - 查询部门信息
-
-根据部门 ID 或名称查询部门信息。
+根据部门 ID 或名称查询部门基础信息。注意：此工具仅返回部门架构！不再返回成员列表。如需获取成员，请使用 `getDepartmentMembers`。
 
 **参数**:
 - `orgId` (string, 可选): 部门 ID
@@ -128,9 +91,6 @@ npm start
       "ORG_PATH_NAME": "公司\\某科技有限公司\\业务中台\\AI产品研发中心",
       "PARENT_ORG_ID": "2013695808098356100",
       "MEMBER_COUNT": 25,
-      "MEMBER_IDS": ["644db4447e4b00d5d7f029ee2", ...],
-      "MEMBER_CODES": ["10001", "10002", ...],
-      "MEMBER_NAMES": ["张三", "李四", ...],
       ...
     }
   ],
@@ -140,42 +100,9 @@ npm start
 }
 ```
 
-### 3. getUserByName - 根据姓名查询员工信息
+### 2. getBatchUserInfo - 根据工号查询员工信息
 
-根据员工姓名查询员工的基本信息（主要用于获取工号、BASE地等）。
-
-**参数**:
-- `name` (string, 必填): 员工姓名（精确匹配）
-
-**示例**:
-```json
-{
-  "name": "王星"
-}
-```
-
-**返回**:
-```json
-{
-  "content": [
-    {
-      "CODE": "11528",
-      "NAME": "王星",
-      "BASE_NAME": "深圳市",
-      "PHONE": "18942667857",
-      "ORG_PATH_NAME": "公司\\某科技有限公司\\业务中台\\AI产品研发中心",
-      ...
-    }
-  ],
-  "message": "Api access succeeded",
-  "records": 1,
-  "successFlag": true
-}
-```
-
-### 4. getBatchUserInfo - 批量查询员工信息
-
-批量查询多个员工的详细信息，支持字段过滤。
+根据工号(code)批量或单个查询员工详细信息。当你有多个员工code时，请务必将它们放入数组一次性调用此工具。支持传入单个 code，支持字段过滤。
 
 **参数**:
 - `codes` (array, 必填): 员工工号列表
@@ -213,7 +140,7 @@ npm start
 }
 ```
 
-### 5. searchUsersByName - 模糊搜索员工
+### 3. searchUsersByName - 模糊搜索员工
 
 根据姓名关键词模糊搜索员工。
 
@@ -248,7 +175,7 @@ npm start
 }
 ```
 
-### 6. getDepartmentMembers - 查询部门成员（推荐用于 AI Agent）
+### 4. getDepartmentMembers - 查询部门成员（推荐用于 AI Agent）
 
 🌟 **推荐工具** - 专为 AI Agent 设计，一次调用即可获得过滤后的精确结果，减少 99% 上下文占用。
 
@@ -339,9 +266,6 @@ npm start
 - `ORG_PATH_NAME`: 完整部门路径
 - `PARENT_ORG_ID`: 父部门 ID
 - `MEMBER_COUNT`: 成员数量
-- `MEMBER_IDS`: 成员 IM_OPEN_ID 列表
-- `MEMBER_CODES`: 成员工号列表
-- `MEMBER_NAMES`: 成员姓名列表
 
 ## 项目结构
 
